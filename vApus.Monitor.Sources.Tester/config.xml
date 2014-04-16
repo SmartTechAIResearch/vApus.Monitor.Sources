@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--
+Copyright 2014 (c) Sizing Servers Lab
+University College of West-Flanders, Department GKG
+
+Author(s):
+  Dieter Vandroemme
+-->
+<tests verbosity="verbose">
+<!--<tests>-->
+  <!--<test client="Generic Agent Client" parameters="192.168.34.207,5556;fe80::20c:29ff:fe4c:95d8,5556;dBuntu,5556" testCounts="2,1,50" repeats="0,10,0" />-->
+  <!--<test client="Dstat Agent Client" parameters="192.168.34.207" testCounts="1" repeats="0" />-->
+  <!--<test client="Generic Agent Client" parameters="192.168.34.207,5556" testCounts="2,1,50" repeats="0,10,0" />-->
+  <test client="Racktivity Client" parameters="racktivity1.sslab.lan" testCounts="1" repeats="0" />
+</tests>

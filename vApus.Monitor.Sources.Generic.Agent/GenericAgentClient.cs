@@ -1,0 +1,210 @@
+﻿/*
+ * Copyright 2014 (c) Sizing Servers Lab
+ * University College of West-Flanders, Department GKG
+ * 
+ * Author(s):
+ *    Dieter Vandroemme
+ */
+using Newtonsoft.Json;
+using System;
+using vApus.Monitor.Sources.Base;
+using vApus.Monitor.Sources.Util;
+
+namespace vApus.Monitor.Sources.Generic.Agent {
+    /// <summary>
+    /// A client implementation as described at http://wiki.sizingservers.be/wiki/VApus-vApus-agent_communication_protocol.
+    /// Can communicate with every agent that uses the base java packages.
+    /// </summary>
+    public class GenericAgentClient : BaseSocketClient<string> {
+        private string _agentVersion, _agentCopyright;
+        private int _refreshCountersInterval;
+
+        /// <summary>
+        /// Example: 0.1
+        /// </summary>
+        public string AgentVersion {
+            get {
+                if (_agentVersion == null)
+                    _agentVersion = WriteRead("version");
+                return _agentVersion;
+            }
+        }
+
+        /// <summary>
+        /// Example: Copyright 2014 (c) Sizing Servers Lab\nUniversity College of West-Flanders, Department GKG
+        /// </summary>
+        public string AgentCopyright {
+            get {
+                if (_agentCopyright == null)
+                    _agentCopyright = WriteRead("copyright");
+                return _agentCopyright;
+            }
+        }
+
+        /// <summary>
+        /// The hardware configuration of the monitored machine if applicable.
+        /// </summary>
+        public override string Config {
+            get {
+                if (base._config == null)
+                    base._config = WriteRead("config");
+                return base._config;
+            }
+        }
+
+        /// <summary>
+        /// In ms.
+        /// </summary>
+        public override int RefreshCountersInterval {
+            get {
+                if (_refreshCountersInterval == -1)
+                    _refreshCountersInterval = int.Parse(WriteRead("sendCountersInterval"));
+                return _refreshCountersInterval;
+            }
+        }
+
+        public override string DecimalSeparator {
+            get {
+                if (base._decimalSeparator == null)
+                    base._decimalSeparator = WriteRead("decimalSeparator");
+                return base._decimalSeparator;
+            }
+        }
+
+        /// <summary>
+        /// Example: [{"name":"entity","isAvailable":true,"subs":[{"name":"header","subs":[{"name":"subheader"},{"name":"subheader"}]},{"name":"header","subs":[{"name":"subheader"},{"name":"subheader"}]}]}]
+        /// </summary>
+        public override Entities WDYH {
+            get {
+                if (base._wdyh == null)
+                    WDYHRepresentation = WriteRead("wdyh");
+                return base._wdyh;
+            }
+        }
+
+        /// <summary>
+        /// Example set: [{"name":"entity","isAvailable":true,"subs":[{"name":"header","subs":[{"name":"subheader"},{"name":"subheader"}]},{"name":"header","subs":[{"name":"subheader"},{"name":"subheader"}]}]}]
+        /// </summary>
+        public override Entities WIW {
+            get { return base._wiw; }
+            set {
+                if (base._wiw != value) {
+                    base._wiw = value;
+                    WriteRead(WIWRepresentation);
+                }
+            }
+        }
+
+        public GenericAgentClient() : base() { }
+
+        public override bool Start() {
+            if (IsConnected && !base._started) {
+                WriteRead("start");
+                base._started = true;
+                while (_started)
+                    base.InvokeOnMonitor(ParseCounters(Read("[{\"name\":\"entity\",\"isAvailable\":true,\"subs\":[{\"name\":\"header\",\"subs\":...")));
+            }
+            return base._started;
+        }
+
+        public override bool Stop() {
+            if (base._started) {
+                base._started = false;
+                WriteRead("stop");
+            }
+            return !base._started;
+        }
+
+        protected override string WriteRead(string write) {
+            if (base._verboseConsoleOutput)
+                Console.WriteLine("Out: " + write);
+            if (!write.EndsWith("\n")) write += '\n';
+            _socket.Send(SerializationHelper.Encode(write, SerializationHelper.TextEncoding.UTF8));
+            return Read(write);
+        }
+        protected override string Read(string expectedResponse) {
+            string read = string.Empty;
+            while (base._socket.Connected && !read.EndsWith("\n")) {
+                byte[] buffer = new byte[base._bufferSize];
+                base._socket.Receive(buffer);
+                read += SerializationHelper.Decode(buffer, SerializationHelper.TextEncoding.UTF8);
+            }
+            if (base._verboseConsoleOutput) {
+                Console.Write("In: ");
+                Console.Write(read);
+            }
+            //The last char is a \n
+            read = read.Substring(0, read.Length - 1);
+
+            if (read == "404")
+                throw new Exception("404: expected " + expectedResponse.Trim());
+            else if (read.Length == 0)
+                throw new Exception("The read message is empty.");
+
+            return read;
+        }
+
+        public override void Test(bool verboseConsoleOutput, int id, params object[] parameterValues) {
+            base._verboseConsoleOutput = verboseConsoleOutput;
+            base._id = id;
+            try {
+                try {
+                    Console.WriteLine("Test " + base._id + " Started");
+                    if (verboseConsoleOutput) Console.WriteLine("Test " + base._id + " Setting the parameters.");
+                    if (!IsConnected) SetParameterValues(parameterValues);
+
+                    if (verboseConsoleOutput) Console.WriteLine("Test " + base._id + " Connecting to the monitor source...");
+                    Connect();
+
+                    if (!IsConnected)
+                        throw new Exception("Test " + base._id + " Failed to connect to the monitor source.");
+
+                    string agentVersion = AgentVersion;
+                    string agentCopyright = AgentCopyright;
+                    string config = Config;
+                    int refreshCountersInterval = RefreshCountersInterval;
+                    string decimalSeparator = DecimalSeparator;
+
+                    base._wiw = DetermineRandomWiwEntities();
+                    if (_verboseConsoleOutput) Console.WriteLine("Test " + base._id + " Random wiw determined: " + WIWRepresentation);
+                    WriteRead(WIWRepresentation);
+
+                    WriteRead("start");
+                    _started = true;
+
+                    if (_verboseConsoleOutput) Console.WriteLine("Test " + base._id + " Reading and parsing counters 10 times...");
+
+                    for (int i = 0; i != 10; i++)
+                        ParseCounters(Read("[{\"name\":\"entity\",\"isAvailable\":true,\"subs\":[{\"name\":\"header\",\"subs\":..."));
+
+                    Stop();
+
+                    Console.WriteLine("Test " + base._id + " Finished succesfully");
+                } catch {
+                    throw;
+
+                } finally {
+                    try { Dispose(); } catch { throw new Exception("Failed to dispose."); }
+                }
+            } catch (Exception ex) {
+                var defaultColor = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Test " + base._id + " Failed: " + ex.Message + " " + ex.StackTrace);
+                Console.ForegroundColor = defaultColor;
+            }
+            base._verboseConsoleOutput = false;
+        }
+        /// <summary>
+        /// Checks if the counters are valid against wiw. Throws an exception if not.
+        /// In case of warnings, thos are written to the console if _verboseConsoleOutput == true.
+        /// </summary>
+        /// <param name="counters"></param>
+        /// <returns></returns>
+        protected Entities ParseCounters(string counters, bool validate = true) {
+            Entities entities = JsonConvert.DeserializeObject<Entities>(counters, _jsonSerializerSettings);
+            if (validate)
+                ValidateCounters(entities);
+            return entities;
+        }
+    }
+}
