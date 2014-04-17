@@ -11,5 +11,6 @@ Author(s):
   <!--<test client="Generic Agent Client" parameters="192.168.34.207,5556;fe80::20c:29ff:fe4c:95d8,5556;dBuntu,5556" testCounts="2,1,50" repeats="0,10,0" />-->
   <!--<test client="Dstat Agent Client" parameters="192.168.34.207" testCounts="1" repeats="0" />-->
   <!--<test client="Generic Agent Client" parameters="192.168.34.207,5556" testCounts="2,1,50" repeats="0,10,0" />-->
-  <test client="Racktivity Client" parameters="racktivity1.sslab.lan" testCounts="1" repeats="0" />
+  <!--<test client="Racktivity Client" parameters="racktivity1.sslab.lan" testCounts="1" repeats="0" />-->
+  <test client="IPMI Client" parameters="dual-ivy-mgmt.sslab.lan,ADMIN,ADMIN" testCounts="1" repeats="0" />
 </tests>

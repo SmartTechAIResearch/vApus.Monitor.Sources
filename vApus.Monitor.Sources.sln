@@ -19,6 +19,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.Local
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.Racktivity", "vApus.Monitor.Sources.Racktivity\vApus.Monitor.Sources.Racktivity.csproj", "{9E96B99D-5ABE-48EE-A75B-87030E713E9C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.ESXi", "vApus.Monitor.Sources.ESXi\vApus.Monitor.Sources.ESXi.csproj", "{526DCC10-DC46-44F0-AE65-8ABDD3CE2712}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.IPMI", "vApus.Monitor.Sources.IPMI\vApus.Monitor.Sources.IPMI.csproj", "{AE4613F9-F931-4AC5-A326-371E4E3048A0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +61,14 @@ Global
 		{9E96B99D-5ABE-48EE-A75B-87030E713E9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9E96B99D-5ABE-48EE-A75B-87030E713E9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9E96B99D-5ABE-48EE-A75B-87030E713E9C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{526DCC10-DC46-44F0-AE65-8ABDD3CE2712}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{526DCC10-DC46-44F0-AE65-8ABDD3CE2712}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{526DCC10-DC46-44F0-AE65-8ABDD3CE2712}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{526DCC10-DC46-44F0-AE65-8ABDD3CE2712}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE4613F9-F931-4AC5-A326-371E4E3048A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE4613F9-F931-4AC5-A326-371E4E3048A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE4613F9-F931-4AC5-A326-371E4E3048A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE4613F9-F931-4AC5-A326-371E4E3048A0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

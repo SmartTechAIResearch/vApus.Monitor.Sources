@@ -30,7 +30,6 @@ namespace vApus.Monitor.Sources.Racktivity {
         public override Entities WDYH {
             get {
                 if (base._wdyh == null) {
-
                     base._wdyh = new Entities();
                     for (int i = 0; i != 8; i++) {
                         int outlet = i + 1;
@@ -51,13 +50,15 @@ namespace vApus.Monitor.Sources.Racktivity {
         }
 
         public override bool Connect() {
-            if (!IsConnected) {
+            bool isConnected = IsConnected;
+            if (!isConnected) {
                 string username = GetParameter("Username").Value as string;
                 string password = GetParameter("Password").Value as string;
 
                 _oldRacktivityHelper = new OldRacktivityHelper(HostNameOrIPAddress, username, password);
+                isConnected = IsConnected;
             }
-            return IsConnected;
+            return isConnected;
         }
 
         protected override Entities PollCounters() {
