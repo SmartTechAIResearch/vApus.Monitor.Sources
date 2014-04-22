@@ -94,7 +94,6 @@ namespace vApus.Monitor.Sources.IPMI {
             return base._wiwWithCounters;
         }
 
-
         public override bool Disconnect() {
             if (IsConnected) {
                 _ipmiHelper = null;
