@@ -299,11 +299,13 @@ namespace vApus.Monitor.Sources.Base {
         }
         private string Combine(List<string> l, string delimiter) {
             var sb = new StringBuilder();
-            for (int i = 0; i != l.Count - 1; i++) {
-                sb.Append(l[i]);
-                sb.Append(delimiter);
+            if (l.Count != 0) {
+                for (int i = 0; i != l.Count - 1; i++) {
+                    sb.Append(l[i]);
+                    sb.Append(delimiter);
+                }
+                sb.Append(l[l.Count - 1]);
             }
-            sb.Append(l[l.Count - 1]);
             return sb.ToString();
         }
         #endregion

@@ -49,7 +49,11 @@ namespace vApus.Monitor.Sources.Base {
         /// </summary>
         /// <returns></returns>
         public List<String> GetCountersLastLevel() {
-            return GetCounters(GetLevelCount() - 1);
+            int level = GetLevelCount() - 1;
+            if (level < 1 && !base[0].IsAvailable())
+                return new List<string>();
+
+            return GetCounters(level);
         }
 
         /// <summary>
@@ -160,7 +164,7 @@ namespace vApus.Monitor.Sources.Base {
             --level;
             for (int i = 0; i != base.Count; i++) {
                 List<CounterInfo> subCounterInfos = base[i].GetCounterInfos(level);
-                if (subCounterInfos.Count == 0)
+                if (base[i].IsAvailable() && subCounterInfos.Count == 0)
                     throw new NullReferenceException("CounterInfos does not exist at the given level (" + givenLevel + ").");
                 else
                     counterInfos.AddRange(subCounterInfos);
@@ -217,7 +221,7 @@ namespace vApus.Monitor.Sources.Base {
                     }
             }
 
-            if (lastLevel != -1) {
+            if (lastLevel > 0) {
                 List<string> counters = GetCounters(lastLevel);
 
                 bool nullFound = false, notNullFound = false;

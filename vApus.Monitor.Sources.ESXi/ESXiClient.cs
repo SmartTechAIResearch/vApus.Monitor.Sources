@@ -37,18 +37,18 @@ namespace vApus.Monitor.Sources.ESXi {
         public override string Config {
             get {
                 if (base._config == null) {
-                    //HostHardwareInfo hardwareInfo = _esxiHelper.GetHostHardwareInfo();
-                    
-                    //var sb = new StringBuilder();
-                    //using (var xmlWriter = XmlWriter.Create(sb, new XmlWriterSettings())) {
-                    //    xmlWriter.WriteStartElement("Configuration");
+                    HostHardwareInfo hardwareInfo = _esxiHelper.Host.HardwareInfo;
 
-                    //    RecurseThroughHardwareInfo(xmlWriter, hardwareInfo.GetType(), hardwareInfo);
+                    var sb = new StringBuilder();
+                    using (var xmlWriter = XmlWriter.Create(sb, new XmlWriterSettings())) {
+                        xmlWriter.WriteStartElement("Configuration");
 
-                    //    xmlWriter.WriteEndElement();
-                    //    xmlWriter.Flush();
-                    //}
-                    //base._config = sb.ToString();
+                        RecurseThroughHardwareInfo(xmlWriter, hardwareInfo.GetType(), hardwareInfo);
+
+                        xmlWriter.WriteEndElement();
+                        xmlWriter.Flush();
+                    }
+                    base._config = sb.ToString();
                 }
                 return base._config;
             }
@@ -71,7 +71,7 @@ namespace vApus.Monitor.Sources.ESXi {
                             //open element (new package)
                             //s to indicate it's a collection
                             //we cant place this line in the beginning of the function because if this block not gets executed (but the else block) we need to know something before we're writing the starting element
-                            writer.WriteStartElement(p.Name + "s"); 
+                            writer.WriteStartElement(p.Name + "s");
 
                             //recurse throught the array
                             int index = 1;
@@ -109,17 +109,58 @@ namespace vApus.Monitor.Sources.ESXi {
                 }
         }
 
-
         public override Entities WDYH {
             get {
                 if (base._wdyh == null) {
                     base._wdyh = new Entities();
 
-                   
+                    Host host = _esxiHelper.Host;
 
-
+                    base._wdyh.Add(MakeEntity(host));
+                    if (host.VMs != null)
+                        foreach (VM vm in host.VMs)
+                            base._wdyh.Add(MakeEntity(vm));
                 }
                 return base._wdyh;
+            }
+        }
+
+        private Entity MakeEntity(Host host) {
+            var entity = new Entity("Host", true);
+            if (host.PerformanceCounters != null)
+                AddCounterInfos(entity, host.PerformanceCounters);
+
+            return entity;
+        }
+        private Entity MakeEntity(VM vm) {
+            var entity = new Entity(vm.Name, vm.VirtualMachinePowerState == VirtualMachinePowerState.poweredOn);
+            if (vm.PerformanceCounters != null)
+                AddCounterInfos(entity, vm.PerformanceCounters);
+
+            return entity;
+        }
+        private void AddCounterInfos(Entity entity, List<PerformanceCounter> performanceCounters) {
+            foreach (PerformanceCounter counter in performanceCounters) {
+                var counterInfo = new CounterInfo(counter.DotNotatedName + " (" + counter.Unit + ")");
+
+                if (counter.Instances == null) {
+                    var sub = new CounterInfo("0"); //Only counter values on the last level.
+
+                    if (counter.Value.HasValue)
+                        sub.SetCounter(counter.Value.Value);
+
+                    counterInfo.GetSubs().Add(sub);
+                } else {
+                    foreach (Instance instance in counter.Instances) {
+                        var sub = new CounterInfo(instance.Name);
+                        if (instance.Value.HasValue)
+                            sub.SetCounter(instance.Value.Value);
+
+                        counterInfo.GetSubs().Add(sub);
+                    }
+                }
+
+                entity.GetSubs().Add(counterInfo);
             }
         }
 
@@ -143,7 +184,23 @@ namespace vApus.Monitor.Sources.ESXi {
         }
 
         protected override Entities PollCounters() {
-            throw new NotImplementedException();
+            _esxiHelper.RefreshCounterValues();
+
+            base._wih = new Entities();
+
+            Host host = _esxiHelper.Host;
+
+            base._wih.Add(MakeEntity(host));
+            if (host.VMs != null)
+                foreach (VM vm in host.VMs)
+                    base._wih.Add(MakeEntity(vm));
+
+            if (base._wiwWithCounters == null)
+                base._wiwWithCounters = base._wiw.Clone();
+
+            base._wiwWithCounters.SetCounters(base._wih);
+
+            return base._wiwWithCounters;
         }
 
         public override bool Disconnect() {

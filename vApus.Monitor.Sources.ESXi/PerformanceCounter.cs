@@ -15,7 +15,14 @@ namespace vApus.Monitor.Sources.ESXi {
         /// </summary>
         public string DotNotatedName { get; set; }
 
-        public List<string> Instances { get; set; }
+        public string Unit { get; set; }
+
+        /// <summary>
+        /// Only applicable if there are not instances.
+        /// </summary>
+        public float? Value { get; set; }
+
+        public List<Instance> Instances { get; set; }
     }
 
     internal class PerformanceCounterComparer : IComparer<PerformanceCounter> {
@@ -30,24 +37,6 @@ namespace vApus.Monitor.Sources.ESXi {
 
         public int Compare(PerformanceCounter x, PerformanceCounter y) {
             return x.Id.CompareTo(y.Id);
-        }
-    }
-
-    internal class PerformanceCounterInstanceComparer : IComparer<string> {
-        private static PerformanceCounterInstanceComparer _performanceCounterInstanceComparer;
-
-        public static PerformanceCounterInstanceComparer GetInstance() {
-            if (_performanceCounterInstanceComparer == null) _performanceCounterInstanceComparer = new PerformanceCounterInstanceComparer();
-            return _performanceCounterInstanceComparer;
-        }
-
-        private PerformanceCounterInstanceComparer() { }
-
-        public int Compare(string x, string y) {
-            int a, b;
-            if (int.TryParse(x, out a) && int.TryParse(y, out b))
-                return a.CompareTo(b);
-            return x.CompareTo(y);
         }
     }
 }

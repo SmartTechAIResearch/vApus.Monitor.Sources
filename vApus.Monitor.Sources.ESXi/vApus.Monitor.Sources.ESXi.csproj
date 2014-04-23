@@ -50,6 +50,7 @@
     <Compile Include="ESXiClient.cs" />
     <Compile Include="ESXiHelper.cs" />
     <Compile Include="Host.cs" />
+    <Compile Include="Instance.cs" />
     <Compile Include="PerformanceCounter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VM.cs" />
