@@ -16,7 +16,6 @@ namespace vApus.Monitor.Sources.ESXi {
         public List<PerformanceCounter> PerformanceCounters { get; set; }
     }
 
-
     internal class VMComparer : IComparer<VM> {
         private static VMComparer _vmComparer;
 

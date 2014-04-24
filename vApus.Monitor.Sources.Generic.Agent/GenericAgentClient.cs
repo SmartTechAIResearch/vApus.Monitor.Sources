@@ -172,9 +172,9 @@ namespace vApus.Monitor.Sources.Generic.Agent {
                     WriteRead("start");
                     _started = true;
 
-                    if (_verboseConsoleOutput) Console.WriteLine("Test " + base._id + " Reading and parsing counters 10 times...");
+                    if (_verboseConsoleOutput) Console.WriteLine("Test " + base._id + " Reading and parsing counters 3 times...");
 
-                    for (int i = 0; i != 10; i++)
+                    for (int i = 0; i != 3; i++)
                         ParseCounters(Read("[{\"name\":\"entity\",\"isAvailable\":true,\"subs\":[{\"name\":\"header\",\"subs\":..."));
 
                     Stop();

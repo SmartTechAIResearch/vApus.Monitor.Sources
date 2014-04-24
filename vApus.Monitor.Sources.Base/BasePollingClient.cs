@@ -107,9 +107,9 @@ namespace vApus.Monitor.Sources.Base {
                     if (_verboseConsoleOutput) Console.WriteLine("Test " + base._id + " Random wiw determined: " + WIWRepresentation);
 
                     _started = true;
-                    if (_verboseConsoleOutput) Console.WriteLine("Test " + base._id + " Reading and parsing counters 10 times...");
+                    if (_verboseConsoleOutput) Console.WriteLine("Test " + base._id + " Reading and parsing counters 3 times...");
 
-                    for (int i = 0; i != 10; i++) {
+                    for (int i = 0; i != 3; i++) {
                         ValidateCounters(PollCounters());
                         if (_sleepWaitHandle != null)
                             _sleepWaitHandle.WaitOne(refreshCountersInterval);

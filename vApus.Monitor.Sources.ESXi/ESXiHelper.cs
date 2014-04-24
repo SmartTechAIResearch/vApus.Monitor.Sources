@@ -14,18 +14,36 @@ using System.Net.Security;
 using VimApi;
 
 namespace vApus.Monitor.Sources.ESXi {
+    /// <summary>
+    /// <para>This is a simple helper class to get information back from ESXi for a single host and it's VMs.</para>
+    /// <para>That information consists of hardware info for the host and available counters for the host and VMs in a structured / usable manner.</para>
+    /// <para>After calling Connect() you can get the Host. Counter values are added to the same Host object calling RefreshCounterValues().</para>
+    /// <para>Do not forget to dispose this.</para>
+    /// </summary>
     internal class ESXiHelper : IDisposable {
         private VimService _service;
         private ServiceContent _serviceContent; //Getting stuff through the content.
         private Host _host;
-        private PerfProviderSummary _perfProviderSummary;
+        private const int REFRESHRATEINSECONDS = 20;
         private Dictionary<int, PerfCounterInfo> _perfCounterInfos; //key == perf counter info key / perf metric counter id.
 
         public string HostNameOrIPAddress { get; private set; }
         public string Username { get; private set; }
         public string Password { get; private set; }
 
+        /// <summary>
+        /// Calls Connect().
+        /// </summary>
         public bool IsReachable { get { return Connect(); } }
+
+        public Host Host {
+            get {
+                if (_host == null)
+                    MakeHost();
+
+                return _host;
+            }
+        }
 
         private ServiceContent ServiceContent {
             get {
@@ -39,29 +57,12 @@ namespace vApus.Monitor.Sources.ESXi {
                 return _serviceContent;
             }
         }
-        public Host Host {
-            get {
-                if (_host == null)
-                    MakeHost();
-
-                return _host;
-            }
-        }
-
-        private PerfProviderSummary PerfProviderSummary {
-            get {
-                if (_perfProviderSummary == null)
-                    _perfProviderSummary = _service.QueryPerfProviderSummary(ServiceContent.perfManager, _host.Reference);
-                return _perfProviderSummary;
-            }
-        }
-
         private Dictionary<int, PerfCounterInfo> PerfCounterInfos {
             get {
                 if (_perfCounterInfos == null) {
                     _perfCounterInfos = new Dictionary<int, PerfCounterInfo>();
 
-                    PerfCounterInfo[] perfCounterInfoArr = GetPropertyContent("PerformanceManager", "perfCounter", _serviceContent.perfManager)[0].propSet[0].val as PerfCounterInfo[];
+                    var perfCounterInfoArr = GetPropertyContent("PerformanceManager", "perfCounter", _serviceContent.perfManager)[0].propSet[0].val as PerfCounterInfo[];
 
                     foreach (var info in perfCounterInfoArr)
                         _perfCounterInfos.Add(info.key, info);
@@ -70,6 +71,15 @@ namespace vApus.Monitor.Sources.ESXi {
             }
         }
 
+        /// <summary>
+        /// <para>This is a simple helper class to get information back from ESXi for a single host and it's VMs.</para>
+        /// <para>That information consists of hardware info for the host and available counters for the host and VMs in a structured manner.</para>
+        /// <para>After calling Connect() you can get the Host. Counter values are added to the same Host object calling RefreshCounterValues().</para>
+        /// <para>Do not forget to dispose this.</para>
+        /// </summary>
+        /// <param name="hostNameOrIPAddress"></param>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
         public ESXiHelper(string hostNameOrIPAddress, string username, string password) {
             HostNameOrIPAddress = hostNameOrIPAddress;
             Username = username;
@@ -79,12 +89,6 @@ namespace vApus.Monitor.Sources.ESXi {
             ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback((sender, certificate, chain, policyErrors) => { return true; });
         }
 
-        /// <summary>
-        /// Connects to a specified ESX host
-        /// </summary>
-        /// <param name="ipadress"></param>
-        /// <param name="username"></param>
-        /// <param name="password"></param>
         public bool Connect() {
             if (_service == null)
                 try {
@@ -157,7 +161,7 @@ namespace vApus.Monitor.Sources.ESXi {
         private List<PerformanceCounter> MakePerformanceCounters(ManagedObjectReference reference) {
             List<PerformanceCounter> performanceCounters = null;
 
-            PerfMetricId[] perfMetricIds = _service.QueryAvailablePerfMetric(ServiceContent.perfManager, reference, DateTime.Now, false, DateTime.Now, false, PerfProviderSummary.refreshRate, true);
+            PerfMetricId[] perfMetricIds = _service.QueryAvailablePerfMetric(ServiceContent.perfManager, reference, DateTime.Now, false, DateTime.Now, false, REFRESHRATEINSECONDS, true);
             if (perfMetricIds != null && perfMetricIds.Length != 0) {
                 performanceCounters = new List<PerformanceCounter>();
 
@@ -228,9 +232,10 @@ namespace vApus.Monitor.Sources.ESXi {
 
         /// <summary>
         /// Adds values to the host and VMs performance counters.
-        /// Get everything we have in one call , every call to this takes 20 seconds.
+        /// New values are available every 20 seconds.
         /// </summary>
         public void RefreshCounterValues() {
+            //Specifiy what to query.
             var perfQuerySpecs = new List<PerfQuerySpec>();
             perfQuerySpecs.Add(MakePerfQuerySpec(Host.Reference, _host.PerformanceCounters));
             if (_host.VMs != null)
@@ -239,7 +244,8 @@ namespace vApus.Monitor.Sources.ESXi {
 
             PerfEntityMetricBase[] perfEntityMetrics = _service.QueryPerf(_serviceContent.perfManager, perfQuerySpecs.ToArray());
 
-            foreach (PerfEntityMetricCSV perfEntityMetricCSV in perfEntityMetrics) 
+            //Parse the returned stuff.
+            foreach (PerfEntityMetricCSV perfEntityMetricCSV in perfEntityMetrics)
                 if (perfEntityMetricCSV.entity.Value == _host.Reference.Value) {
                     AddCounterValuesToEntity(perfEntityMetricCSV, _host.PerformanceCounters);
                 } else if (_host.VMs != null) {
@@ -250,13 +256,13 @@ namespace vApus.Monitor.Sources.ESXi {
 
         private PerfQuerySpec MakePerfQuerySpec(ManagedObjectReference reference, List<PerformanceCounter> performanceCounters) {
             var pqSpec = new PerfQuerySpec() { entity = reference };
-            pqSpec.intervalId = PerfProviderSummary.refreshRate; //refresh for realtime aka every 20 seconds.
+            pqSpec.intervalId = REFRESHRATEINSECONDS; //refresh for realtime aka every 20 seconds.
             pqSpec.intervalIdSpecified = true;
 
-            pqSpec.maxSample = 1;
+            pqSpec.maxSample = 1; //Since we poll at the smallest possible resolution there can only be one valid sample.
             pqSpec.maxSampleSpecified = true;
 
-            pqSpec.format = "csv";
+            pqSpec.format = "csv"; //A compact format.
 
             var perfMetricIds = new List<PerfMetricId>();
             if (performanceCounters != null)
@@ -278,7 +284,7 @@ namespace vApus.Monitor.Sources.ESXi {
                     PerformanceCounter counter = performanceCounters.Find(item => item.Id == csvValue.id.counterId);
 
                     float value = float.Parse(csvValue.value);
-                    //counters in procent are always multiplied times 100 by ESXi.
+                    //counters in procent are always multiplied times 100 by Vim.
                     if (counter.Unit.Equals("percent", StringComparison.CurrentCultureIgnoreCase))
                         value /= 100f;
 

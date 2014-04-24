@@ -200,28 +200,43 @@ namespace vApus.Monitor.Sources.Base {
         /// <summary>
         /// Use this in a test, throws an exception if fails.
         /// Random entities are determined based on WDYH.
+        /// Only available antities are chosen if any.
         /// </summary>
         /// <returns></returns>
         protected Entities DetermineRandomWiwEntities() {
-            Entities wdyh = WDYH;
             try {
+                Entities wdyh = WDYH;
+
                 var wiw = new Entities();
 
-                bool addedOne = false;
-                // Add minimum one, otherwise parsing the values can go wrong if headers are missing at the last level.
-                while (!addedOne)
-                    for (int i = 0; i != wdyh.Count; i++) {
-                        //Random seed, otherwise System.currentTimeMillis() is used and I do not want to let the thread sleep.
-                        Random random = new Random(Guid.NewGuid().GetHashCode());
-                        if (random.NextDouble() > 0.5d) {
-                            addedOne = true;
-                            Entity entity = wdyh[i];
-                            Entity newEntity = new Entity(entity.GetName(), entity.IsAvailable());
-                            wiw.Add(newEntity);
-
-                            ChanceCopySubs(entity, newEntity);
-                        }
+                bool hasAvailableEntities = false;
+                foreach (Entity entity in wdyh)
+                    if (entity.IsAvailable()) {
+                        hasAvailableEntities = true;
+                        break;
                     }
+
+                if (hasAvailableEntities) {
+                    bool addedOne = false;
+
+                    // Add minimum one, otherwise parsing the values can go wrong if headers are missing at the last level.
+                    while (!addedOne)
+                        for (int i = 0; i != wdyh.Count; i++) {
+                            //Random seed, otherwise System.currentTimeMillis() is used and I do not want to let the thread sleep.
+                            var random = new Random(Guid.NewGuid().GetHashCode());
+                            if (random.NextDouble() > 0.5d) {
+                                Entity entity = wdyh[i];
+                                if (entity.IsAvailable()) {
+                                    addedOne = true;
+
+                                    var newEntity = new Entity(entity.GetName(), entity.IsAvailable());
+                                    wiw.Add(newEntity);
+
+                                    ChanceCopySubs(entity, newEntity);
+                                }
+                            }
+                        }
+                }
                 return wiw;
             } catch (Exception ex) {
                 throw new Exception("Could not determine a random wiw, because the given wdyh is malformed: " + ex.Message);
@@ -238,7 +253,7 @@ namespace vApus.Monitor.Sources.Base {
                         if (random.NextDouble() > 0.5d) {
                             addedOne = true;
                             CounterInfo counterInfo = subs[i];
-                            CounterInfo newCounterInfo = new CounterInfo(counterInfo.GetName(), counterInfo.GetCounter());
+                            var newCounterInfo = new CounterInfo(counterInfo.GetName(), counterInfo.GetCounter());
                             to.GetSubs().Add(newCounterInfo);
 
                             ChanceCopySubs(counterInfo, newCounterInfo);
@@ -258,7 +273,7 @@ namespace vApus.Monitor.Sources.Base {
                         if (random.NextDouble() > 0.5d) {
                             addedOne = true;
                             CounterInfo counterInfo = subs[i];
-                            CounterInfo newCounterInfo = new CounterInfo(counterInfo.GetName(), counterInfo.GetCounter());
+                            var newCounterInfo = new CounterInfo(counterInfo.GetName(), counterInfo.GetCounter());
                             to.GetSubs().Add(newCounterInfo);
 
                             ChanceCopySubs(counterInfo, newCounterInfo);
@@ -293,9 +308,9 @@ namespace vApus.Monitor.Sources.Base {
 
             if (_verboseConsoleOutput)
                 if (_id == -1)
-                    Console.WriteLine("Parsed: " + Combine(parsedCounters, " "));
+                    Console.WriteLine("Parsed (" + DateTime.Now.ToString("HH:mm:ss") + "):" + Combine(parsedCounters, " "));
                 else
-                    Console.WriteLine("Test " + _id + " Parsed: " + Combine(parsedCounters, " "));
+                    Console.WriteLine("Test " + _id + " Parsed (" + DateTime.Now.ToString("HH:mm:ss") + "):" + Combine(parsedCounters, " "));
         }
         private string Combine(List<string> l, string delimiter) {
             var sb = new StringBuilder();
