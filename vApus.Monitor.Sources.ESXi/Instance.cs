@@ -13,6 +13,9 @@ namespace vApus.Monitor.Sources.ESXi {
         public float? Value { get; set; }
     }
 
+    /// <summary>
+    /// Compare the names. Tries a numeric approach first. If that fails a default text compare is used.
+    /// </summary>
     internal class InstanceComparer : IComparer<Instance> {
         private static InstanceComparer _instanceComparer;
 

@@ -4,18 +4,10 @@
  * 
  * Author(s):
  *    Dieter Vandroemme
- *    Based on code from Glenn Desmadryl
  */
 using RandomUtils.Log;
 using System;
 using System.Net;
-/*
- * Copyright 2014 (c) Sizing Servers Lab
- * University College of West-Flanders, Department GKG
- * 
- * Author(s):
- *    Dieter Vandroemme
- */
 using System.Net.Sockets;
 using System.Threading;
 

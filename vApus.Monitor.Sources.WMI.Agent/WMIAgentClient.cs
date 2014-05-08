@@ -11,7 +11,7 @@ namespace vApus.Monitor.Sources.WMI.Agent {
     public class WMIAgentClient : GenericAgentClient {
         public WMIAgentClient()
             : base() {
-            base.GetParameter("Port").DefaultValue = 5557;
+            base.GetParameter("Port").DefaultValue = 5556;
         }
     }
 }

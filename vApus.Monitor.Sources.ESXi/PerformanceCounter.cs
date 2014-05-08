@@ -25,6 +25,9 @@ namespace vApus.Monitor.Sources.ESXi {
         public List<Instance> Instances { get; set; }
     }
 
+    /// <summary>
+    /// Compares the ids.
+    /// </summary>
     internal class PerformanceCounterComparer : IComparer<PerformanceCounter> {
         private static PerformanceCounterComparer _performanceCounterComparer;
 

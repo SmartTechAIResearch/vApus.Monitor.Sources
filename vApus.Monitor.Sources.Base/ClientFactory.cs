@@ -91,7 +91,7 @@ namespace vApus.Monitor.Sources.Base {
 
         private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args) {
             try {
-                AssemblyName assemblyName = new AssemblyName(args.Name);
+                var assemblyName = new AssemblyName(args.Name);
 
                 if (!assemblyName.Name.EndsWith(".resources")) {
                     string fileName = Path.Combine(MonitorSourceClientsFolderLocation, assemblyName.Name + ".dll");
