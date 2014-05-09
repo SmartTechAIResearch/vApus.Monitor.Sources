@@ -86,7 +86,7 @@ namespace vApus.Monitor.Sources.Base {
                 try {
                     Console.WriteLine("Test " + base._id + " Started");
                     if (verboseConsoleOutput) Console.WriteLine("Test " + base._id + " Setting the parameters.");
-                    if (!IsConnected) SetParameterValues(parameterValues);
+                    if (!IsConnected && parameterValues != null) SetParameterValues(parameterValues);
 
                     if (verboseConsoleOutput) Console.WriteLine("Test " + base._id + " Connecting to the monitor source...");
                     Connect();

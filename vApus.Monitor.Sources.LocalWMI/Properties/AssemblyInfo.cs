@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Local Client")]
-[assembly: AssemblyDescription("Collects local WMI counters.")]
+[assembly: AssemblyTitle("Local WMI Client")]
+[assembly: AssemblyDescription("A client to monitor the local system.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Howest Sizing Servers Lab")]
-[assembly: AssemblyProduct("vApus.Monitor.Sources.Local")]
+[assembly: AssemblyProduct("vApus.Monitor.Sources.LocalWMI")]
 [assembly: AssemblyCopyright("Copyright 2014 (c) Sizing Servers Lab\nUniversity College of West-Flanders, Department GKG")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("4ead16ce-f897-4321-952b-be191ed5fbd8")]
+[assembly: Guid("12f89d37-d1c0-4095-bd04-983a561c9a5a")]
 
 // Version information for an assembly consists of the following four values:
 //

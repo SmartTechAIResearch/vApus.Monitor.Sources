@@ -41,18 +41,24 @@ namespace vApus.Monitor.Sources.Tester {
             client.Dispose();
 
             try {
-                string[] parameterGroups = testNode.Attributes["parameters"].Value.Split(';');
-                _parameters = new List<object[]>(parameterGroups.Length);
-                for (int i = 0; i != parameterGroups.Length; i++) {
-                    string[] parameters = parameterGroups[i].Split(',');
-                    var l = new List<object>();
+                string parametersValue = testNode.Attributes["parameters"].Value;
+                _parameters = new List<object[]>();
 
-                    for (int j = 0; j != parameters.Length; j++) {
-                        object value = Convert.ChangeType(parameters[j], defaultValueTypes[j]);
-                        l.Add(value);
+                if (parametersValue.Length == 0) {
+                    _parameters.Add(null);
+                } else {
+                    string[] parameterGroups = parametersValue.Split(';');
+                    for (int i = 0; i != parameterGroups.Length; i++) {
+                        string[] parameters = parameterGroups[i].Split(',');
+                        var l = new List<object>();
+
+                        for (int j = 0; j != parameters.Length; j++) {
+                            object value = Convert.ChangeType(parameters[j], defaultValueTypes[j]);
+                            l.Add(value);
+                        }
+
+                        _parameters.Add(l.ToArray());
                     }
-
-                    _parameters.Add(l.ToArray());
                 }
             } catch (Exception ex) {
                 throw new Exception("Failed to get the parameters from the config file: " + ex.Message);

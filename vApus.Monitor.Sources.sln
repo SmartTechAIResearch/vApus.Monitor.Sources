@@ -15,13 +15,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.HMT.A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.WMI.Agent", "vApus.Monitor.Sources.WMI.Agent\vApus.Monitor.Sources.WMI.Agent.csproj", "{4925513D-F95E-4417-83B1-E5C57F2E6679}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.Local", "vApus.Monitor.Sources.Local\vApus.Monitor.Sources.Local.csproj", "{972D877F-2A9E-4A94-853F-CFE625FA94C9}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.Racktivity", "vApus.Monitor.Sources.Racktivity\vApus.Monitor.Sources.Racktivity.csproj", "{9E96B99D-5ABE-48EE-A75B-87030E713E9C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.ESXi", "vApus.Monitor.Sources.ESXi\vApus.Monitor.Sources.ESXi.csproj", "{526DCC10-DC46-44F0-AE65-8ABDD3CE2712}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.IPMI", "vApus.Monitor.Sources.IPMI\vApus.Monitor.Sources.IPMI.csproj", "{AE4613F9-F931-4AC5-A326-371E4E3048A0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.LocalWMI", "vApus.Monitor.Sources.LocalWMI\vApus.Monitor.Sources.LocalWMI.csproj", "{4DD0DFD4-C692-49DB-B12F-D8F239407AA0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,10 +53,6 @@ Global
 		{4925513D-F95E-4417-83B1-E5C57F2E6679}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4925513D-F95E-4417-83B1-E5C57F2E6679}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4925513D-F95E-4417-83B1-E5C57F2E6679}.Release|Any CPU.Build.0 = Release|Any CPU
-		{972D877F-2A9E-4A94-853F-CFE625FA94C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{972D877F-2A9E-4A94-853F-CFE625FA94C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{972D877F-2A9E-4A94-853F-CFE625FA94C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{972D877F-2A9E-4A94-853F-CFE625FA94C9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9E96B99D-5ABE-48EE-A75B-87030E713E9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9E96B99D-5ABE-48EE-A75B-87030E713E9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9E96B99D-5ABE-48EE-A75B-87030E713E9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -69,6 +65,10 @@ Global
 		{AE4613F9-F931-4AC5-A326-371E4E3048A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AE4613F9-F931-4AC5-A326-371E4E3048A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AE4613F9-F931-4AC5-A326-371E4E3048A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4DD0DFD4-C692-49DB-B12F-D8F239407AA0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4DD0DFD4-C692-49DB-B12F-D8F239407AA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4DD0DFD4-C692-49DB-B12F-D8F239407AA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4DD0DFD4-C692-49DB-B12F-D8F239407AA0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

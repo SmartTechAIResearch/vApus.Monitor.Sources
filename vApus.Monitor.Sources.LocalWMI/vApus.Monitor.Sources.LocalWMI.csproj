@@ -4,14 +4,13 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{972D877F-2A9E-4A94-853F-CFE625FA94C9}</ProjectGuid>
+    <ProjectGuid>{4DD0DFD4-C692-49DB-B12F-D8F239407AA0}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>vApus.Monitor.Sources.Local</RootNamespace>
-    <AssemblyName>vApus.Monitor.Sources.Local</AssemblyName>
+    <RootNamespace>vApus.Monitor.Sources.LocalWMI</RootNamespace>
+    <AssemblyName>vApus.Monitor.Sources.LocalWMI</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -35,14 +34,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Prerequisites\RandomUtils\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="RandomUtils, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Prerequisites\RandomUtils\RandomUtils.dll</HintPath>
-    </Reference>
-    <Reference Include="RandomUtils.Log, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Prerequisites\RandomUtils\RandomUtils.Log.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Management" />
@@ -53,8 +44,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LocalClient.cs" />
+    <Compile Include="LocalWMIClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SystemInformation.cs" />
+    <Compile Include="WmiHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\vApus.Monitor.Sources.Base\vApus.Monitor.Sources.Base.csproj">
