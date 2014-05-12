@@ -1,108 +1,66 @@
-﻿/*
+﻿using Newtonsoft.Json;
+/*
  * Copyright 2014 (c) Sizing Servers Lab
  * University College of West-Flanders, Department GKG
  * 
  * Author(s):
  *    Dieter Vandroemme
  */
-using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using vApus.Monitor.Sources.Base;
 using vApus.Monitor.Sources.Util;
 
-namespace vApus.Monitor.Sources.Generic.Agent {
+namespace vApus.Monitor.Sources.Hotbox.Agent {
     /// <summary>
-    /// A client implementation as described at http://wiki.sizingservers.be/wiki/VApus-vApus-agent_communication_protocol.
-    /// Can communicate with every agent that uses the base java packages.
+    /// A client for the Hotbox agent. Currently supports only v1 not v2.
+    /// With a bit of luck the agent gets rewritten using the vApus-agent netbeans packages.
     /// </summary>
-    public class GenericAgentClient : BaseSocketClient<string> {
-        private string _agentVersion, _agentCopyright;
-        private int _refreshCountersInterval;
+    public class HotboxAgentClient : BaseSocketClient<string> {
+        private Entities _wih, _wiwWithCounters;
+        private string _getSensors, _startSensors, _stopSensors;
 
-        /// <summary>
-        /// Example: 0.1
-        /// </summary>
-        public string AgentVersion {
-            get {
-                if (_agentVersion == null)
-                    _agentVersion = WriteRead("version");
-                return _agentVersion;
-            }
-        }
+        public override int RefreshCountersInterval { get { return 1000; } }
 
-        /// <summary>
-        /// Example: Copyright 2014 (c) Sizing Servers Lab\nUniversity College of West-Flanders, Department GKG
-        /// </summary>
-        public string AgentCopyright {
-            get {
-                if (_agentCopyright == null)
-                    _agentCopyright = WriteRead("copyright");
-                return _agentCopyright;
-            }
-        }
+        public override string DecimalSeparator { get { return "."; } }
 
-        /// <summary>
-        /// The hardware configuration of the monitored machine if applicable.
-        /// </summary>
-        public override string Config {
-            get {
-                if (base._config == null)
-                    base._config = WriteRead("config");
-                return base._config;
-            }
-        }
-
-        /// <summary>
-        /// In ms.
-        /// </summary>
-        public override int RefreshCountersInterval {
-            get {
-                if (_refreshCountersInterval == -1)
-                    _refreshCountersInterval = int.Parse(WriteRead("sendCountersInterval"));
-                return _refreshCountersInterval;
-            }
-        }
-
-        public override string DecimalSeparator {
-            get {
-                if (base._decimalSeparator == null)
-                    base._decimalSeparator = WriteRead("decimalSeparator");
-                return base._decimalSeparator;
-            }
-        }
-
-        /// <summary>
-        /// Example: [{"name":"entity","isAvailable":true,"subs":[{"name":"header","subs":[{"name":"subheader"},{"name":"subheader"}]},{"name":"header","subs":[{"name":"subheader"},{"name":"subheader"}]}]}]
-        /// </summary>
         public override Entities WDYH {
             get {
-                if (base._wdyh == null)
-                    WDYHRepresentation = WriteRead("wdyh");
+                if (base._wdyh == null) {
+                    string message = WriteRead(_getSensors);
+
+                    var entities = new Entities();
+                    var entity = new Entity(GetParameter("Host Name or IP address").Value as string, true);
+
+                    HotboxSensors sensors = JsonConvert.DeserializeObject<HotboxSensors>(message);
+                    foreach (string sensor in sensors.sensors)
+                        entity.GetSubs().Add(new CounterInfo(sensor));
+
+                    entities.Add(entity);
+                    base._wdyh = entities;
+                }
                 return base._wdyh;
             }
         }
 
-        /// <summary>
-        /// Example set: [{"name":"entity","isAvailable":true,"subs":[{"name":"header","subs":[{"name":"subheader"},{"name":"subheader"}]},{"name":"header","subs":[{"name":"subheader"},{"name":"subheader"}]}]}]
-        /// </summary>
-        public override Entities WIW {
-            get { return base._wiw; }
-            set {
-                if (base._wiw != value) {
-                    base._wiw = value;
-                    WriteRead(WIWRepresentation);
-                }
-            }
-        }
+        public HotboxAgentClient()
+            : base() {
+            base.GetParameter("Port").DefaultValue = 9999;
 
-        public GenericAgentClient() : base() { }
+            _getSensors = JsonConvert.SerializeObject(new HotboxCommand() { command = "getSensors" });
+            _startSensors = JsonConvert.SerializeObject(new HotboxCommand() { command = "startSensors" });
+            _stopSensors = JsonConvert.SerializeObject(new HotboxCommand() { command = "stopSensors" });
+        }
 
         public override bool Start() {
             if (IsConnected && !base._started) {
-                WriteRead("start");
+                Write(_startSensors);
                 base._started = true;
-                while (_started)
-                    base.InvokeOnMonitor(ParseCounters(Read("[{\"name\":\"entity\",\"isAvailable\":true,\"subs\":[{\"name\":\"header\",\"subs\":...")));
+                while (_started) {
+                    string counters = Read("{\"sensors\":[...]}");
+                    foreach (string line in counters.Split('\n'))
+                        base.InvokeOnMonitor(ParseCounters(line));
+                }
             }
             return base._started;
         }
@@ -110,17 +68,20 @@ namespace vApus.Monitor.Sources.Generic.Agent {
         public override bool Stop() {
             if (base._started) {
                 base._started = false;
-                WriteRead("stop");
+                Write(_stopSensors);
             }
             return !base._started;
         }
 
         protected override string WriteRead(string write) {
+            Write(write);
+            return Read(write);
+        }
+        private void Write(string write) {
             if (base._verboseConsoleOutput)
                 Console.WriteLine("Out: " + write);
             if (!write.EndsWith("\n")) write += '\n';
             _socket.Send(SerializationHelper.Encode(write, SerializationHelper.TextEncoding.UTF8));
-            return Read(write);
         }
         protected override string Read(string expectedResponse) {
             string read = string.Empty;
@@ -133,15 +94,19 @@ namespace vApus.Monitor.Sources.Generic.Agent {
                 Console.Write("In: ");
                 Console.Write(read);
             }
-            //The last char is a \n
-            read = read.Substring(0, read.Length - 1);
 
-            if (read == "404")
-                throw new Exception("404: expected " + expectedResponse.Trim());
-            else if (read.Length == 0)
+            read = RemoveChars(read, ' ').TrimEnd('\0', '\n');
+
+            if (read.Length == 0)
                 throw new Exception("The read message is empty.");
 
             return read;
+        }
+        private string RemoveChars(string s, char c) {
+            string newS = string.Empty;
+            foreach (char cc in s)
+                if (cc != c) newS += cc;
+            return newS;
         }
 
         public override void Test(bool verboseConsoleOutput, int id, params object[] parameterValues) {
@@ -159,23 +124,23 @@ namespace vApus.Monitor.Sources.Generic.Agent {
                     if (!IsConnected)
                         throw new Exception("Test " + base._id + " Failed to connect to the monitor source.");
 
-                    string agentVersion = AgentVersion;
-                    string agentCopyright = AgentCopyright;
+                    //string agentVersion = AgentVersion;
+                    //string agentCopyright = AgentCopyright;
                     string config = Config;
                     int refreshCountersInterval = RefreshCountersInterval;
                     string decimalSeparator = DecimalSeparator;
 
                     base._wiw = DetermineRandomWiwEntities();
                     if (_verboseConsoleOutput) Console.WriteLine("Test " + base._id + " Random wiw determined: " + WIWRepresentation);
-                    WriteRead(WIWRepresentation);
+                    //WriteRead(WIWRepresentation);
 
-                    WriteRead("start");
+                    Write(_startSensors);
                     _started = true;
 
                     if (_verboseConsoleOutput) Console.WriteLine("Test " + base._id + " Reading and parsing counters 3 times...");
 
                     for (int i = 0; i != 3; i++)
-                        ParseCounters(Read("[{\"name\":\"entity\",\"isAvailable\":true,\"subs\":[{\"name\":\"header\",\"subs\":..."));
+                        ParseCounters(Read("{\"sensors\":[...]}"));
 
                     Stop();
 
@@ -194,6 +159,7 @@ namespace vApus.Monitor.Sources.Generic.Agent {
             }
             base._verboseConsoleOutput = false;
         }
+
         /// <summary>
         /// Checks if the counters are valid against wiw. Throws an exception if not.
         /// In case of warnings, thos are written to the console if _verboseConsoleOutput == true.
@@ -201,10 +167,33 @@ namespace vApus.Monitor.Sources.Generic.Agent {
         /// <param name="counters"></param>
         /// <returns></returns>
         private Entities ParseCounters(string counters, bool validate = true) {
-            Entities entities = JsonConvert.DeserializeObject<Entities>(counters, _jsonSerializerSettings);
+            var values = new List<object>();
+
+            HotboxSensors sensors = JsonConvert.DeserializeObject<HotboxSensors>(counters);
+            foreach (string ctr in sensors.sensors) {
+                string[] unparsedReading = ctr.Split('.');
+                float reading = float.Parse(unparsedReading[0]);
+                if (unparsedReading.Length == 2) { //Add decimal places.
+                    float unparsedReading1 = float.Parse(unparsedReading[1]);
+                    if (unparsedReading1 != 0)
+                        reading += (unparsedReading1 / (int)(Math.Pow(10, unparsedReading1.ToString().Length)));
+                }
+                values.Add(reading);
+            }
+
+            if (_wih == null)
+                _wih = base._wdyh.Clone();
+            _wih.SetCountersLastLevel(values.ToArray());
+
+            if (_wiwWithCounters == null)
+                _wiwWithCounters = _wiw.Clone();
+
+            _wiwWithCounters.SetCounters(_wih);
+
             if (validate)
-                ValidateCounters(entities);
-            return entities;
+                ValidateCounters(_wiwWithCounters);
+
+            return _wiwWithCounters;
         }
     }
 }

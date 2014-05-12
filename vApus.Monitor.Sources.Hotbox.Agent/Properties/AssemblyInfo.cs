@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("WMI Agent Client")]
-[assembly: AssemblyDescription("A generic agent implementation having 5556 for a default port to connect to.")]
+[assembly: AssemblyTitle("Hotbox Agent Client")]
+[assembly: AssemblyDescription("A client for the Hotbox agent. Currently supports only v1 not v2.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Howest Sizing Servers Lab")]
-[assembly: AssemblyProduct("vApus.Monitor.Sources.WMI.Agent")]
+[assembly: AssemblyProduct("vApus.Monitor.Sources.Hotbox.Agent")]
 [assembly: AssemblyCopyright("Copyright 2014 (c) Sizing Servers Lab\nUniversity College of West-Flanders, Department GKG")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("dda974e8-2501-45e6-b986-1e8808d7c4e0")]
+[assembly: Guid("a39cd56a-7a26-4151-a743-4c618b139adb")]
 
 // Version information for an assembly consists of the following four values:
 //
