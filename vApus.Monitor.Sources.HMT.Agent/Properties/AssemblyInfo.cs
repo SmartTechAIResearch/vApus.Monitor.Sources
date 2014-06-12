@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("HMT Agent Client")]
-[assembly: AssemblyDescription("A generic agent implementation having 5555 for a default port to connect to.")]
+[assembly: AssemblyDescription("A generic agent implementation having 5557 for a default port to connect to.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Howest Sizing Servers Lab")]
 [assembly: AssemblyProduct("vApus.Monitor.Sources.HMT.Agent")]

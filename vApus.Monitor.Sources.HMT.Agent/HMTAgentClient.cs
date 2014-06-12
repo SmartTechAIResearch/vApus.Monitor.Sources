@@ -8,10 +8,13 @@
 using vApus.Monitor.Sources.Generic.Agent;
 
 namespace vApus.Monitor.Sources.HMT.Agent {
+    /// <summary>
+    /// A generic agent implementation having 5557 for a default port to connect to.
+    /// </summary>
     public class HMTAgentClient : GenericAgentClient {
         public HMTAgentClient()
             : base() {
-            base.GetParameter("Port").DefaultValue = 5555;
+            base.GetParameter("Port").DefaultValue = 5557;
         }
     }
 }
