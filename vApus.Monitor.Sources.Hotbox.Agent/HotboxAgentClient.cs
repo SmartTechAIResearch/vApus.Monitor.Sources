@@ -183,7 +183,7 @@ namespace vApus.Monitor.Sources.Hotbox.Agent {
 
             if (_wih == null)
                 _wih = base._wdyh.Clone();
-            _wih.SetCountersLastLevel(values.ToArray());
+            _wih.SetCountersAtLastLevel(values.ToArray());
 
             if (_wiwWithCounters == null)
                 _wiwWithCounters = _wiw.Clone();

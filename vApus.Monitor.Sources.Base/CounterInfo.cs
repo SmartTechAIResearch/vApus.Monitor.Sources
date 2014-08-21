@@ -38,14 +38,14 @@ namespace vApus.Monitor.Sources.Base {
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="name">Should be unique for the level this CounterInfo is at.</param>
+        /// <param name="name">Should be unique for the level this CounterInfo is at. The name should have the unit in it, if applicable, like this: name + " (" + unit + ")".</param>
         public CounterInfo(string name) { this.name = name; }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="name">Should be unique for the level this CounterInfo is at.</param>
-        /// <param name="counter">The ToString() is stored.</param>
+        /// <param name="name">Should be unique for the level this CounterInfo is at. The name should have the unit in it, if applicable, like this: name + " (" + unit + ")".</param>
+        /// <param name="counter">The ToString() is stored (ToString() for easy / lazy serialization).</param>
         public CounterInfo(string name, object counter)
             : this(name) {
             if (counter != null)
@@ -53,12 +53,12 @@ namespace vApus.Monitor.Sources.Base {
         }
 
         /// <summary>
-        /// Should be unique for the level this CounterInfo is at.
+        /// Should be unique for the level this CounterInfo is at. The name should have the unit in it, if applicable, like this: name + " (" + unit + ")".
         /// </summary>
         public string GetName() { return this.name; }
 
         /// <summary>
-        /// 
+        /// This is the ToString() of counter value (ToString() for easy / lazy serialization).
         /// </summary>
         public string GetCounter() { return this.counter; }
         /// <summary>

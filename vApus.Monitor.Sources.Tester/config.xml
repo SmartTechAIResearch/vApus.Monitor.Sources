@@ -14,7 +14,7 @@ Author(s):
   <!--<test client="Racktivity Client" parameters="racktivity1.sslab.lan" testCounts="1" repeats="0" />-->
   <!--<test client="IPMI Client" parameters="dual-ivy-mgmt.sslab.lan,ADMIN,ADMIN" testCounts="1" repeats="0" />-->
   <!--<test client="ESXi Client" parameters="192.168.35.16,root,SiSvLbR0c" testCounts="1" repeats="0" />-->
-  <!--<test client="WMI Agent Client" parameters="127.0.0.1" testCounts="1" repeats="0" />-->
+  <test client="WMI Agent Client" parameters="127.0.0.1" testCounts="1" repeats="0" />
   <!--<test client="Local WMI Client" parameters="" testCounts="1" repeats="0" />-->
-  <test client="Hotbox Agent Client" parameters="hotbox.sslab.lan" testCounts="1" repeats="0" />
+  <!--<test client="Hotbox Agent Client" parameters="hotbox.sslab.lan" testCounts="1" repeats="0" />-->
 </tests>

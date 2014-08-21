@@ -42,13 +42,13 @@ namespace vApus.Monitor.Sources.Base {
         }
 
         /// <summary>
-        /// Gets the counters for the CounterInfos at a last level. Null values are
+        /// Gets the counter values for the CounterInfos at a last level. Null values are
         /// included to preserver order, but should not be mixed with real values:
         /// use -1 instead if the counter becomes unavailable or invalid. (Counters
         /// should only be in leaf nodes.)
         /// </summary>
         /// <returns></returns>
-        public List<String> GetCountersLastLevel() {
+        public List<String> GetCountersAtLastLevel() {
             int level = GetLevelCount() - 1;
             if (level < 1 && !base[0].IsAvailable())
                 return new List<string>();
@@ -57,7 +57,7 @@ namespace vApus.Monitor.Sources.Base {
         }
 
         /// <summary>
-        /// Gets the counters for the CounterInfos at a given level. Null values are
+        /// Gets the counter values for the CounterInfos at a given level. Null values are
         /// included to preserver order, but should not be mixed with real values:
         /// use -1 instead if the counter becomes unavailable or invalid. (Counters
         /// should only be in leaf nodes.)
@@ -80,7 +80,7 @@ namespace vApus.Monitor.Sources.Base {
         /// Set counters at the deepest level.
         /// </summary>
         /// <param name="counters"></param>
-        public void SetCountersLastLevel(Object[] counters) {
+        public void SetCountersAtLastLevel(Object[] counters) {
             List<CounterInfo> counterInfos = GetCounterInfosAtLastLevel();
             for (int i = 0; i != counterInfos.Count; i++)
                 counterInfos[i].SetCounter(counters[i]);
@@ -104,7 +104,7 @@ namespace vApus.Monitor.Sources.Base {
         /// 
         /// </summary>
         /// <param name="name"></param>
-        /// <returns></returns>
+        /// <returns>If not fount: null.</returns>
         public Entity GetEntity(string name) {
             for (int i = 0; i != base.Count; i++) {
                 Entity entity = base[i];
@@ -119,7 +119,7 @@ namespace vApus.Monitor.Sources.Base {
         /// </summary>
         /// <param name="level">Throws an exception if the given level is smaller than 1.</param>
         /// <param name="name"></param>
-        /// <returns></returns>
+        /// <returns>If not fount: null.</returns>
         public CounterInfo GetCounterInfo(int level, String name) {
             if (level < 1)
                 throw new Exception("The given level cannot be smaller than 1.");
@@ -259,6 +259,10 @@ namespace vApus.Monitor.Sources.Base {
             return false;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public Entities Clone() {
             var clone = new Entities();
             foreach (Entity entity in this)

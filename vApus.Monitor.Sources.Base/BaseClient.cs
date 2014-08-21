@@ -188,6 +188,8 @@ namespace vApus.Monitor.Sources.Base {
             }
         }
 
+        public override string ToString() { return Name; }
+
         #region Functionality Testing
         /// <summary>
         /// A test should be as complete as possible. All possible RPCs must be done; returned messages must be validated.
@@ -304,7 +306,7 @@ namespace vApus.Monitor.Sources.Base {
             if (!_wiw.Match(counters, false))
                 throw new Exception("The counter Entities do not match the wiw Entities.");
 
-            parsedCounters.AddRange(counters.GetCountersLastLevel());
+            parsedCounters.AddRange(counters.GetCountersAtLastLevel());
 
             if (_verboseConsoleOutput)
                 if (_id == -1)
