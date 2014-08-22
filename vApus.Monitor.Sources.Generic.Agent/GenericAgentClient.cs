@@ -7,6 +7,7 @@
  */
 using Newtonsoft.Json;
 using System;
+using System.Threading;
 using vApus.Monitor.Sources.Base;
 using vApus.Monitor.Sources.Util;
 
@@ -18,6 +19,8 @@ namespace vApus.Monitor.Sources.Generic.Agent {
     public class GenericAgentClient : BaseSocketClient<string> {
         private string _agentVersion, _agentCopyright;
         private int _refreshCountersInterval;
+
+        private Thread _readMonitorCountersThread;
 
         /// <summary>
         /// Example: 0.1
@@ -57,7 +60,7 @@ namespace vApus.Monitor.Sources.Generic.Agent {
         /// </summary>
         public override int RefreshCountersInterval {
             get {
-                if (_refreshCountersInterval == -1)
+                if (_refreshCountersInterval == 0)
                     _refreshCountersInterval = int.Parse(WriteRead("sendCountersInterval"));
                 return _refreshCountersInterval;
             }
@@ -101,8 +104,12 @@ namespace vApus.Monitor.Sources.Generic.Agent {
             if (IsConnected && !base._started) {
                 WriteRead("start");
                 base._started = true;
-                while (_started)
-                    base.InvokeOnMonitor(ParseCounters(Read("[{\"name\":\"entity\",\"isAvailable\":true,\"subs\":[{\"name\":\"header\",\"subs\":...")));
+                //Queue on another thread.
+                _readMonitorCountersThread = new Thread(() => {
+                    while (base._started)
+                        base.InvokeOnMonitor(ParseCounters(Read("[{\"name\":\"entity\",\"isAvailable\":true,\"subs\":[{\"name\":\"header\",\"subs\":...")));
+                });
+                _readMonitorCountersThread.Start();
             }
             return base._started;
         }
@@ -110,6 +117,10 @@ namespace vApus.Monitor.Sources.Generic.Agent {
         public override bool Stop() {
             if (base._started) {
                 base._started = false;
+                if (_readMonitorCountersThread != null) {
+                    _readMonitorCountersThread.Join();
+                    _readMonitorCountersThread = null;
+                }
                 WriteRead("stop");
             }
             return !base._started;
@@ -119,7 +130,7 @@ namespace vApus.Monitor.Sources.Generic.Agent {
             if (base._verboseConsoleOutput)
                 Console.WriteLine("Out: " + write);
             if (!write.EndsWith("\n")) write += '\n';
-            _socket.Send(SerializationHelper.Encode(write, SerializationHelper.TextEncoding.UTF8));
+            base._socket.Send(SerializationHelper.Encode(write, SerializationHelper.TextEncoding.UTF8));
             return Read(write);
         }
         protected override string Read(string expectedResponse) {

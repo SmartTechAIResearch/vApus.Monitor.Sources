@@ -64,6 +64,8 @@ namespace vApus.Monitor.Sources.Base {
         public override bool Connect() {
             if (!IsConnected) {
                 string hostNameOrIP = GetParameter("Host Name or IP address").Value as string;
+                if (hostNameOrIP.Trim().Length == 0) return false;
+
                 IPAddress[] ipAddresses = null;
 
                 try {
@@ -131,6 +133,7 @@ namespace vApus.Monitor.Sources.Base {
                 try {
                     Stop();
                     _socket.Close();
+                    base._wiw = null;
                     return true;
                 } catch (Exception ex) {
                     Loggers.Log(Level.Error, "Failed to close the connection to the agent.", ex);

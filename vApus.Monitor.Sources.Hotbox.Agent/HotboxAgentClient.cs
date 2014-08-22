@@ -1,13 +1,14 @@
-﻿using Newtonsoft.Json;
-/*
+﻿/*
  * Copyright 2014 (c) Sizing Servers Lab
  * University College of West-Flanders, Department GKG
  * 
  * Author(s):
  *    Dieter Vandroemme
  */
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using vApus.Monitor.Sources.Base;
 using vApus.Monitor.Sources.Util;
 
@@ -19,6 +20,8 @@ namespace vApus.Monitor.Sources.Hotbox.Agent {
     public class HotboxAgentClient : BaseSocketClient<string> {
         private Entities _wih, _wiwWithCounters;
         private string _getSensors, _startSensors, _stopSensors;
+
+        private Thread _readMonitorCountersThread;
 
         public override int RefreshCountersInterval { get { return 1000; } }
 
@@ -56,11 +59,14 @@ namespace vApus.Monitor.Sources.Hotbox.Agent {
             if (IsConnected && !base._started) {
                 Write(_startSensors);
                 base._started = true;
-                while (_started) {
-                    string counters = Read("{\"sensors\":[...]}");
-                    foreach (string line in counters.Split('\n'))
-                        base.InvokeOnMonitor(ParseCounters(line));
-                }
+                _readMonitorCountersThread = new Thread(() => {
+                    while (base._started) {
+                        string counters = Read("{\"sensors\":[...]}");
+                        foreach (string line in counters.Split('\n'))
+                            base.InvokeOnMonitor(ParseCounters(line));
+                    }
+                });
+                _readMonitorCountersThread.Start();
             }
             return base._started;
         }
@@ -68,6 +74,10 @@ namespace vApus.Monitor.Sources.Hotbox.Agent {
         public override bool Stop() {
             if (base._started) {
                 base._started = false;
+                if (_readMonitorCountersThread != null) {
+                    _readMonitorCountersThread.Join();
+                    _readMonitorCountersThread = null;
+                }
                 Write(_stopSensors);
             }
             return !base._started;
