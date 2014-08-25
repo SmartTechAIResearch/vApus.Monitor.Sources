@@ -39,7 +39,7 @@ namespace vApus.Monitor.Sources.Base {
             return base._started;
         }
 
-        private void _timer_Tick(object sender, EventArgs e) { InvokeOnMonitor(PollCounters()); }
+        private void _timer_Tick(object sender, EventArgs e) { if (IsConnected) InvokeOnMonitor(PollCounters()); }
 
         /// <summary>
         /// <para>Poll and transform counters in here. The timer will call this fx periodically.</para> 

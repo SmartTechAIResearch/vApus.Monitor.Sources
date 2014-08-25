@@ -90,18 +90,19 @@ namespace vApus.Monitor.Sources.Generic.Agent {
         /// </summary>
         public override Entities WIW {
             get { return base._wiw; }
-            set {
-                if (base._wiw != value) {
-                    base._wiw = value;
-                    WriteRead(WIWRepresentation);
-                }
-            }
+            set { base._wiw = value; }
         }
 
         public GenericAgentClient() : base() { }
 
         public override bool Start() {
             if (IsConnected && !base._started) {
+
+                //Reset the connecion to be sure.
+                _socket.Close();
+                Connect();
+                WriteRead(WIWRepresentation);
+
                 WriteRead("start");
                 base._started = true;
                 //Queue on another thread.
