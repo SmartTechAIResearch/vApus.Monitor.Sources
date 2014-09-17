@@ -39,7 +39,7 @@ namespace vApus.Monitor.Sources.ESXi {
         private PerformanceCounterComparer() { }
 
         public int Compare(PerformanceCounter x, PerformanceCounter y) {
-            return x.Id.CompareTo(y.Id);
+            return x.DotNotatedName.CompareTo(y.DotNotatedName);
         }
     }
 }

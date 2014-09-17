@@ -96,7 +96,7 @@ namespace vApus.Monitor.Sources.LocalWMI {
                             //Cleanup invalid counter
                             if (counter.CounterName.Equals("No name", StringComparison.InvariantCultureIgnoreCase))
                                 continue;
-                            try { counter.NextValue(); } catch { continue; }
+                            //try { counter.NextValue(); } catch { continue; } This check takes too long, not done for local WMI. Still in place in the WMI agent.
 
                             string counterInfoName = category.CategoryName + "." + counter.CounterName;
                             var counterInfo = new CounterInfo(counterInfoName);
@@ -117,7 +117,7 @@ namespace vApus.Monitor.Sources.LocalWMI {
                                 //Cleanup invalid counter
                                 if (counter.CounterName.Equals("No name", StringComparison.InvariantCultureIgnoreCase))
                                     continue;
-                                try { counter.NextValue(); } catch { continue; }
+                                //try { counter.NextValue(); } catch { continue; } This check takes too long, not done for local WMI. Still in place in the WMI agent.
 
                                 string counterInfoName = category.CategoryName + "." + counter.CounterName;
                                 CounterInfo counterInfo = entity.GetSubs().Find(item => item.GetName() == counterInfoName);

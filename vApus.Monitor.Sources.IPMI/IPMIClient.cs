@@ -12,14 +12,9 @@ using vApus.Monitor.Sources.Base;
 namespace vApus.Monitor.Sources.IPMI {
     public class IPMIClient : BasePollingClient {
         private IPMIHelper _ipmiHelper;
-        private string _hostNameOrIPAddress;
 
         private string HostNameOrIPAddress {
-            get {
-                if (_hostNameOrIPAddress == null)
-                    _hostNameOrIPAddress = GetParameter("Host Name or IP address").Value as string;
-                return _hostNameOrIPAddress;
-            }
+            get { return GetParameter("Host Name or IP address").Value as string; }
         }
 
         public override bool IsConnected { get { return _ipmiHelper != null && _ipmiHelper.IsReachable; } }
@@ -73,7 +68,7 @@ namespace vApus.Monitor.Sources.IPMI {
             DataTable sensorData = _ipmiHelper.FetchIPMISensorData();
 
             if (base._wih == null)
-                base._wih = base._wdyh.Clone();
+                base._wih = WDYH.Clone();
 
             Entity entity = _wih[0];
             foreach (DataRow row in sensorData.Rows) {

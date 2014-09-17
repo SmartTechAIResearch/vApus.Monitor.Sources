@@ -118,11 +118,17 @@ namespace vApus.Monitor.Sources.Generic.Agent {
         public override bool Stop() {
             if (base._started) {
                 base._started = false;
+                bool threadExitedNicely = true;
                 if (_readMonitorCountersThread != null) {
-                    _readMonitorCountersThread.Join();
+                    if (!_readMonitorCountersThread.Join(5000)) {
+                        try { _readMonitorCountersThread.Abort(); } catch { }
+                        threadExitedNicely = false;
+                    }
+
                     _readMonitorCountersThread = null;
                 }
-                WriteRead("stop");
+                if (threadExitedNicely)
+                    WriteRead("stop");
             }
             return !base._started;
         }
@@ -140,6 +146,7 @@ namespace vApus.Monitor.Sources.Generic.Agent {
                 byte[] buffer = new byte[base._bufferSize];
                 base._socket.Receive(buffer);
                 read += SerializationHelper.Decode(buffer, SerializationHelper.TextEncoding.UTF8);
+                if (read.Length == 0) read = "\n"; //Connection error.
             }
             if (base._verboseConsoleOutput) {
                 Console.Write("In: ");
@@ -151,7 +158,7 @@ namespace vApus.Monitor.Sources.Generic.Agent {
             if (read == "404")
                 throw new Exception("404: expected " + expectedResponse.Trim());
             else if (read.Length == 0)
-                throw new Exception("The read message is empty.");
+                throw new Exception("The read message is empty. Probably the connection to the agent faulted.");
 
             return read;
         }

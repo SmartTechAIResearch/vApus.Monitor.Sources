@@ -29,6 +29,10 @@ namespace vApus.Monitor.Sources.Base {
 
         private Multimedia.Timer _timer;
 
+        /// <summary>
+        /// Start polling.
+        /// </summary>
+        /// <returns>True if started.</returns>
         public override bool Start() {
             if (IsConnected && !base._started) {
                 base._started = true;
@@ -46,7 +50,7 @@ namespace vApus.Monitor.Sources.Base {
         /// <para>Example:</para>
         /// <para>RMCPCounters counters = RMCPHelper.GetCounters(HostNameOrIPAddress);</para>
         /// <para>protected override Entities PollCounters() {</para>
-        /// <para>if (_wih == null) _wih = base._wdyh.Clone();</para>
+        /// <para>if (_wih == null) _wih = WDYH.Clone();</para>
         /// <para>for (int i = 0; i != 8; i++) {</para>
         /// <para>int outlet = i + 1;</para>
         /// <para>var entity = _wih[i];</para>
@@ -60,6 +64,10 @@ namespace vApus.Monitor.Sources.Base {
         /// <returns>_wihWithCounters</returns>
         protected abstract Entities PollCounters();
 
+        /// <summary>
+        /// Stop polling.
+        /// </summary>
+        /// <returns>True if stopped.</returns>
         public override bool Stop() {
             if (IsConnected && base._started) {
                 base._started = false;
@@ -78,7 +86,12 @@ namespace vApus.Monitor.Sources.Base {
             return !base._started;
         }
 
-
+        /// <summary>
+        /// Function for the client tester.
+        /// </summary>
+        /// <param name="verboseConsoleOutput"></param>
+        /// <param name="id"></param>
+        /// <param name="parameterValues"></param>
         public override void Test(bool verboseConsoleOutput, int id, params object[] parameterValues) {
             base._verboseConsoleOutput = verboseConsoleOutput;
             base._id = id;

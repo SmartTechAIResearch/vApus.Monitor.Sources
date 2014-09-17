@@ -11,14 +11,9 @@ using vApus.Monitor.Sources.Base;
 namespace vApus.Monitor.Sources.Racktivity {
     internal class OldRacktivityClient : BasePollingClient {
         private OldRacktivityHelper _oldRacktivityHelper;
-        private string _hostNameOrIPAddress;
 
         private string HostNameOrIPAddress {
-            get {
-                if (_hostNameOrIPAddress == null)
-                    _hostNameOrIPAddress = GetParameter("Host Name or IP address").Value as string;
-                return _hostNameOrIPAddress;
-            }
+            get { return GetParameter("Host Name or IP address").Value as string; }
         }
 
         public override bool IsConnected { get { return _oldRacktivityHelper != null && _oldRacktivityHelper.IsReachable; } }
@@ -65,7 +60,7 @@ namespace vApus.Monitor.Sources.Racktivity {
             OldRacktivityCounters counters = _oldRacktivityHelper.GetCounters();
 
             if (base._wih == null)
-                base._wih = base._wdyh.Clone();
+                base._wih = WDYH.Clone();
 
             for (int i = 0; i != 8; i++) {
                 var entity = base._wih[i];
