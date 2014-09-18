@@ -6,6 +6,7 @@
  *    Dieter Vandroemme
  */
 using Newtonsoft.Json;
+using RandomUtils.Log;
 using System;
 using System.Threading;
 using vApus.Monitor.Sources.Base;
@@ -108,7 +109,12 @@ namespace vApus.Monitor.Sources.Generic.Agent {
                 //Queue on another thread.
                 _readMonitorCountersThread = new Thread(() => {
                     while (base._started)
-                        base.InvokeOnMonitor(ParseCounters(Read("[{\"name\":\"entity\",\"isAvailable\":true,\"subs\":[{\"name\":\"header\",\"subs\":...")));
+                        try {
+                            base.InvokeOnMonitor(ParseCounters(Read("[{\"name\":\"entity\",\"isAvailable\":true,\"subs\":[{\"name\":\"header\",\"subs\":...")));
+                        } catch (Exception ex) {
+                            StopOnCommunicationError();
+                            Loggers.Log(Level.Error, "Communication Error", ex);
+                        }
                 });
                 _readMonitorCountersThread.Start();
             }
@@ -119,16 +125,31 @@ namespace vApus.Monitor.Sources.Generic.Agent {
             if (base._started) {
                 base._started = false;
                 bool threadExitedNicely = true;
-                if (_readMonitorCountersThread != null) {
+                if (_readMonitorCountersThread != null && _readMonitorCountersThread.IsAlive) {
                     if (!_readMonitorCountersThread.Join(5000)) {
                         try { _readMonitorCountersThread.Abort(); } catch { }
                         threadExitedNicely = false;
                     }
 
-                    _readMonitorCountersThread = null;
                 }
+                _readMonitorCountersThread = null;
+
                 if (threadExitedNicely)
                     WriteRead("stop");
+            }
+            return !base._started;
+        }
+
+        private bool StopOnCommunicationError() {
+            if (base._started) {
+                base._started = false;
+                if (_readMonitorCountersThread != null && _readMonitorCountersThread.IsAlive) {
+                    try {
+                        if (!_readMonitorCountersThread.Join(5000)) 
+                            _readMonitorCountersThread.Abort();
+                    } catch { }
+                }
+                _readMonitorCountersThread = null;
             }
             return !base._started;
         }
