@@ -28,7 +28,8 @@ namespace vApus.Monitor.Sources.Racktivity {
                     _webClient.DownloadString(urlToWatch);
                     return true;
                 } catch (Exception ex) {
-                    Loggers.Log(Level.Warning, "Could not reach " + HostNameOrIPAddress, ex);
+                   // Loggers.Log(Level.Warning, "Could not reach " + HostNameOrIPAddress, ex);
+                   // If this is the case, there will be connected using the new racktivity client.
                 }
                 return false;
             }

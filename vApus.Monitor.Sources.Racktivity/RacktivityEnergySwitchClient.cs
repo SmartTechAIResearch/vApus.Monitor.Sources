@@ -61,7 +61,8 @@ namespace vApus.Monitor.Sources.Racktivity {
                     _isConnected = RMCPHelper.EnableDisableUDPAccess(HostNameOrIPAddress, username, password, true);
                 } catch (Exception ex) {
                     //Failed to resolve the given host name for example.
-                    Loggers.Log(Level.Error, "Failed connecting to the racktivity energy switch.", ex);
+                    //Loggers.Log(Level.Error, "Failed connecting to the racktivity energy switch.", ex);
+                    //Handled in RacktivityClient.
                 }
             }
             return IsConnected;
