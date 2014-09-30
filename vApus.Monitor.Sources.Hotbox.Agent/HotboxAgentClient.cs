@@ -182,9 +182,9 @@ namespace vApus.Monitor.Sources.Hotbox.Agent {
             HotboxSensors sensors = JsonConvert.DeserializeObject<HotboxSensors>(counters);
             foreach (string ctr in sensors.sensors) {
                 string[] unparsedReading = ctr.Split('.');
-                float reading = float.Parse(unparsedReading[0]);
+                double reading = double.Parse(unparsedReading[0]);
                 if (unparsedReading.Length == 2) { //Add decimal places.
-                    float unparsedReading1 = float.Parse(unparsedReading[1]);
+                    double unparsedReading1 = double.Parse(unparsedReading[1]);
                     if (unparsedReading1 != 0)
                         reading += (unparsedReading1 / (int)(Math.Pow(10, unparsedReading1.ToString().Length)));
                 }

@@ -38,7 +38,7 @@ namespace vApus.Monitor.Sources.Racktivity {
         public OldRacktivityCounters GetCounters() {
 
             if (IsReachable) {
-                float[] wattage = new float[8];
+                double[] wattage = new double[8];
                 for (int i = 0; i != 8; i++)
                     wattage[i] = GetWatt(i + 1);
 
@@ -46,13 +46,13 @@ namespace vApus.Monitor.Sources.Racktivity {
                 for (int i = 0; i != 8; i++)
                     available[i] = wattage[i] > 0;
 
-                float[] current = new float[8];
+                double[] current = new double[8];
                 for (int i = 0; i != 8; i++)
                     current[i] = GetCurrent(i + 1);
 
-                float voltage = GetVoltage();
+                double voltage = GetVoltage();
 
-                float[] powerFactor = new float[8];
+                double[] powerFactor = new double[8];
                 for (int i = 0; i != 8; i++)
                     powerFactor[i] = GetPowerFactor(wattage[i], current[i], voltage);
 
@@ -77,7 +77,7 @@ namespace vApus.Monitor.Sources.Racktivity {
         /// </summary>
         /// <param name="outlet">1-based</param>
         /// <returns>-1 if fails.</returns>
-        public float GetWatt(int outlet) {
+        public double GetWatt(int outlet) {
             return GetValue(outlet, 80, 10);
         }
 
@@ -85,7 +85,7 @@ namespace vApus.Monitor.Sources.Racktivity {
         /// In Volt.
         /// </summary>
         /// <returns>-1 if fails.</returns>
-        public float GetVoltage() {
+        public double GetVoltage() {
             return GetValue(96, 100);
         }
 
@@ -94,7 +94,7 @@ namespace vApus.Monitor.Sources.Racktivity {
         /// </summary>
         /// <param name="outlet">1-based</param>
         /// <returns>-1 if fails.</returns>
-        public float GetCurrent(int outlet) {
+        public double GetCurrent(int outlet) {
             return GetValue(outlet, 64, 1000);
         }
         /// <summary>
@@ -104,10 +104,10 @@ namespace vApus.Monitor.Sources.Racktivity {
         /// <param name="current"></param>
         /// <param name="voltage"></param>
         /// <returns>-1 if not available</returns>
-        public float GetPowerFactor(float wattage, float current, float voltage) {
-            if (wattage == -1 || current == -1 || voltage == -1)
-                return -1f;
-            return wattage / (voltage * current) * 100f;
+        public double GetPowerFactor(double wattage, double current, double voltage) {
+            if (wattage == -1d || current == -1d || voltage == -1d)
+                return -1d;
+            return wattage / (voltage * current) * 100d;
         }
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace vApus.Monitor.Sources.Racktivity {
         /// <param name="basePort"></param>
         /// <param name="scale"></param>
         /// <returns></returns>
-        private float GetValue(int outlet, int basePort, int scale) {
+        private double GetValue(int outlet, int basePort, int scale) {
             //for each next port to question we have to add 2. So for port 2 we'll have 82, for port 3 84,...
             int port = basePort + ((outlet - 1) * 2);
             return GetValue(port, scale);
@@ -128,7 +128,7 @@ namespace vApus.Monitor.Sources.Racktivity {
         /// <param name="port"></param>
         /// <param name="scale"></param>
         /// <returns>-1 if fails.</returns>
-        private float GetValue(int port, int scale) {
+        private double GetValue(int port, int scale) {
             try {
                 //example string: http://192.168.36.37/Data.php?code=GR0009600002I
                 string urlToWatch = "http://" + HostNameOrIPAddress.ToString() + "/Data.php?code=GR000" + port.ToString() + "00002I";
@@ -147,15 +147,15 @@ namespace vApus.Monitor.Sources.Racktivity {
                 //1st value = valueArr[0] * (256^0)
                 //2nde value = valueArr[1] * (256^1)
 
-                float value = 0f;
+                double value = 0d;
                 for (int i = 0; i < arr.Length; i++)
-                    value += float.Parse(arr[i]) * Convert.ToSingle(((Math.Pow(256, i))));
+                    value += double.Parse(arr[i]) * Convert.ToSingle(((Math.Pow(256, i))));
 
                 return (value / Convert.ToSingle(scale));
             } catch (Exception ex) {
                 Loggers.Log(Level.Warning, "Could not reach " + HostNameOrIPAddress, ex);
             }
-            return -1f;
+            return -1d;
         }
     }
 
@@ -163,17 +163,17 @@ namespace vApus.Monitor.Sources.Racktivity {
         /// <summary>
         /// In A
         /// </summary>
-        public float[] Current { get; private set; }
+        public double[] Current { get; private set; }
         //In W
-        public float[] Wattage { get; private set; }
+        public double[] Wattage { get; private set; }
         /// <summary>
         /// Power is getting drawed at outlet?
         /// </summary>
         public bool[] Available { get; private set; }
 
-        public float[] PowerFactor { get; private set; }
+        public double[] PowerFactor { get; private set; }
 
-        public OldRacktivityCounters(bool[] available, float[] wattage, float[] current, float[] powerFactor) {
+        public OldRacktivityCounters(bool[] available, double[] wattage, double[] current, double[] powerFactor) {
             Available = available;
             Wattage = wattage;
             Current = current;

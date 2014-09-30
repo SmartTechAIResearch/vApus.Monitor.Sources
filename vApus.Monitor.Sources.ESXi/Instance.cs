@@ -10,7 +10,7 @@ using System.Collections.Generic;
 namespace vApus.Monitor.Sources.ESXi {
     internal class Instance {
         public string Name { get; set; }
-        public float? Value { get; set; }
+        public double? Value { get; set; }
     }
 
     /// <summary>

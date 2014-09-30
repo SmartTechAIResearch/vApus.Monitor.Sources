@@ -52,14 +52,14 @@ namespace vApus.Monitor.Sources.IPMI {
             _sensorData = new DataTable("IPMI");
             _sensorData.Columns.Add("Sensor", typeof(string)); //name (unit)
             _sensorData.Columns.Add("Status", typeof(string));
-            _sensorData.Columns.Add("Reading", typeof(float));
+            _sensorData.Columns.Add("Reading", typeof(double));
         }
         /// <summary>
         /// 
         /// </summary>
         /// <returns>
         /// <para>A datatable with columns: Sensor, Status, Reading</para>
-        /// <para>of types: string, string, float</para>
+        /// <para>of types: string, string, double</para>
         /// <para>Status can be OK or something else if not OK.</para>
         /// </returns>
         public DataTable FetchIPMISensorData() {
@@ -82,7 +82,7 @@ namespace vApus.Monitor.Sources.IPMI {
                         if (!cells[0].Contains("ID")) {
                             string name = cells[4].Trim();
                             string status = cells[5].Trim();
-                            float reading = -1f;
+                            double reading = -1f;
 
                             if (cells.Length == 7) {
                                 string[] readingArr = cells[6].Trim().Split(' ');
@@ -90,9 +90,9 @@ namespace vApus.Monitor.Sources.IPMI {
                                     name += " (" + readingArr[1] + ")";
 
                                     var unparsedReading = readingArr[0].Split('.');
-                                    reading = float.Parse(unparsedReading[0]);
+                                    reading = double.Parse(unparsedReading[0]);
                                     if (unparsedReading.Length == 2) { //Add decimal places.
-                                        float unparsedReading1 = float.Parse(unparsedReading[1]);
+                                        double unparsedReading1 = double.Parse(unparsedReading[1]);
                                         if (unparsedReading1 != 0)
                                             reading += (unparsedReading1 / (int)(Math.Pow(10, unparsedReading1.ToString().Length)));
                                     }
