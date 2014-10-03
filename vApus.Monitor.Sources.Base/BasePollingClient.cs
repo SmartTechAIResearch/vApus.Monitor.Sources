@@ -77,9 +77,11 @@ namespace vApus.Monitor.Sources.Base {
                     _timer = null;
                 }
 
-                _sleepWaitHandle.Set();
-                _sleepWaitHandle.Dispose();
-                _sleepWaitHandle = null;
+                if (_sleepWaitHandle != null) {
+                    _sleepWaitHandle.Set();
+                    _sleepWaitHandle.Dispose();
+                    _sleepWaitHandle = null;
+                }
 
                 _wih = _wiwWithCounters = null;
             }
@@ -122,6 +124,7 @@ namespace vApus.Monitor.Sources.Base {
                     _started = true;
                     if (_verboseConsoleOutput) Console.WriteLine("Test " + base._id + " Reading and parsing counters 3 times...");
 
+                    _sleepWaitHandle = new AutoResetEvent(false);
                     for (int i = 0; i != 3; i++) {
                         ValidateCounters(PollCounters());
                         if (_sleepWaitHandle != null)

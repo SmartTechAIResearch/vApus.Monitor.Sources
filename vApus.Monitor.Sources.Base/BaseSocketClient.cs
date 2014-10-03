@@ -27,6 +27,9 @@ namespace vApus.Monitor.Sources.Base {
 
         private readonly ManualResetEvent _connectWaitHandle = new ManualResetEvent(true);
 
+        /// <summary>
+        /// 
+        /// </summary>
         protected Socket _socket;
 
         /// <summary>
@@ -43,6 +46,9 @@ namespace vApus.Monitor.Sources.Base {
         protected int _bufferSize = 8192;
         #endregion
 
+        /// <summary>
+        /// 
+        /// </summary>
         public override bool IsConnected { get { return _socket != null && _socket.Connected; } }
 
         /// <summary>
