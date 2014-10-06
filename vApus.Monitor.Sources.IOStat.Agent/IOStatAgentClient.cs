@@ -7,9 +7,9 @@
  */
 using vApus.Monitor.Sources.Generic.Agent;
 
-namespace vApus.Monitor.Sources.IOStat.Agent {
-    public class IOStatAgentClient : GenericAgentClient {
-        public IOStatAgentClient()
+namespace vApus.Monitor.Sources.IOstat.Agent {
+    public class IOstatAgentClient : GenericAgentClient {
+        public IOstatAgentClient()
             : base() {
             base.GetParameter("Port").DefaultValue = 5558;
         }

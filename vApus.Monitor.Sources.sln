@@ -25,7 +25,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.Local
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.Hotbox.Agent", "vApus.Monitor.Sources.Hotbox.Agent\vApus.Monitor.Sources.Hotbox.Agent.csproj", "{FEC836D1-69F3-45B0-A595-E8A0735B779A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.IOStat.Agent", "vApus.Monitor.Sources.IOStat.Agent\vApus.Monitor.Sources.IOStat.Agent.csproj", "{BF26573B-23D6-41B1-B2BD-63CB27B57E8C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.IOstat.Agent", "vApus.Monitor.Sources.IOstat.Agent\vApus.Monitor.Sources.IOstat.Agent.csproj", "{BF26573B-23D6-41B1-B2BD-63CB27B57E8C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

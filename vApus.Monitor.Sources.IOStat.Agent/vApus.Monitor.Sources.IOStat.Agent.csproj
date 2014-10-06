@@ -7,8 +7,8 @@
     <ProjectGuid>{BF26573B-23D6-41B1-B2BD-63CB27B57E8C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>vApus.Monitor.Sources.IOStat.Agent</RootNamespace>
-    <AssemblyName>vApus.Monitor.Sources.IOStat.Agent</AssemblyName>
+    <RootNamespace>vApus.Monitor.Sources.IOstat.Agent</RootNamespace>
+    <AssemblyName>vApus.Monitor.Sources.IOstat.Agent</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -42,7 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IOStatAgentClient.cs" />
+    <Compile Include="IOstatAgentClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
