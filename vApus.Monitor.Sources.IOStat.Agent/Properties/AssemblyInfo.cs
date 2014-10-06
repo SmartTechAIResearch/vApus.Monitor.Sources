@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("IOStat Agent Client")]
+[assembly: AssemblyTitle("IOstat Agent Client")]
 [assembly: AssemblyDescription("A generic agent implementation having 5558 for a default port to connect to.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Howest Sizing Servers Lab")]
-[assembly: AssemblyProduct("vApus.Monitor.Sources.IOStat.Agent")]
+[assembly: AssemblyProduct("vApus.Monitor.Sources.IOstat.Agent")]
 [assembly: AssemblyCopyright("Copyright 2014 (c) Sizing Servers Lab\nUniversity College of West-Flanders, Department GKG")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
