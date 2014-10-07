@@ -98,25 +98,29 @@ namespace vApus.Monitor.Sources.Generic.Agent {
 
         public override bool Start() {
             if (IsConnected && !base._started) {
+                try {
+                    //Reset the connecion to be sure.
+                    _socket.Close();
+                    Connect();
+                    WriteRead(WIWRepresentation);
 
-                //Reset the connecion to be sure.
-                _socket.Close();
-                Connect();
-                WriteRead(WIWRepresentation);
-
-                WriteRead("start");
-                base._started = true;
-                //Queue on another thread.
-                _readMonitorCountersThread = new Thread(() => {
-                    while (base._started)
-                        try {
-                            base.InvokeOnMonitor(ParseCounters(Read("[{\"name\":\"entity\",\"isAvailable\":true,\"subs\":[{\"name\":\"header\",\"subs\":...")));
-                        } catch (Exception ex) {
-                            StopOnCommunicationError();
-                            Loggers.Log(Level.Error, "Communication Error", ex);
-                        }
-                });
-                _readMonitorCountersThread.Start();
+                    WriteRead("start");
+                    base._started = true;
+                    //Queue on another thread.
+                    _readMonitorCountersThread = new Thread(() => {
+                        while (base._started)
+                            try {
+                                base.InvokeOnMonitor(ParseCounters(Read("[{\"name\":\"entity\",\"isAvailable\":true,\"subs\":[{\"name\":\"header\",\"subs\":...")));
+                            } catch (Exception ex) {
+                                StopOnCommunicationError();
+                                Loggers.Log(Level.Error, "Communication Error", ex);
+                            }
+                    });
+                    _readMonitorCountersThread.Start();
+                } catch (Exception ex) {
+                    StopOnCommunicationError();
+                    Loggers.Log(Level.Error, "Communication Error", ex);
+                }
             }
             return base._started;
         }
@@ -145,7 +149,7 @@ namespace vApus.Monitor.Sources.Generic.Agent {
                 base._started = false;
                 if (_readMonitorCountersThread != null && _readMonitorCountersThread.IsAlive) {
                     try {
-                        if (!_readMonitorCountersThread.Join(5000)) 
+                        if (!_readMonitorCountersThread.Join(5000))
                             _readMonitorCountersThread.Abort();
                     } catch { }
                 }
