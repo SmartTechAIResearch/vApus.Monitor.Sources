@@ -18,5 +18,6 @@ Author(s):
   <!--<test client="Local WMI Client" parameters="" testCounts="1" repeats="0" />-->
   <!--<test client="Hotbox Agent Client" parameters="hotbox.sslab.lan" testCounts="1" repeats="0" />-->
   <!--<test client="HMT Agent Client" parameters="192.168.34.48" testCounts="1" repeats="3" />-->
+  <!--<test client="Elasticsearch Node" parameters="hp-g8.sslab.lan,9200" testCounts="1" repeats="3" />-->
   <!--<test client="IOStat Agent Client" parameters="192.168.34.48" testCounts="1" repeats="3" />-->
 </tests>
