@@ -51,7 +51,12 @@ namespace vApus.Monitor.Sources.Generic.Agent {
         public override string Config {
             get {
                 if (base._config == null)
-                    base._config = WriteRead("config");
+                    try {
+                        base._config = WriteRead("config");
+                    } catch (Exception ex) {
+                        base._config = "<config>Not available</config>";
+                        Loggers.Log(Level.Error, "Failed getting the config.", ex);
+                    }
                 return base._config;
             }
         }
