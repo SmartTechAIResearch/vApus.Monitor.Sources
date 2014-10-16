@@ -1,4 +1,5 @@
-﻿/*
+﻿using RandomUtils.Log;
+/*
  * Copyright 2014 (c) Sizing Servers Lab
  * University College of West-Flanders, Department GKG
  * 
@@ -34,16 +35,29 @@ namespace vApus.Monitor.Sources.Base {
         /// </summary>
         /// <returns>True if started.</returns>
         public override bool Start() {
-            if (IsConnected && !base._started) {
-                base._started = true;
-                _timer = new Multimedia.Timer() { Mode = Multimedia.TimerMode.Periodic, Period = RefreshCountersInterval };
-                _timer.Tick += _timer_Tick;
-                _timer.Start();
+            try {
+                if (IsConnected && !base._started) {
+                    base._started = true;
+                    _timer = new Multimedia.Timer() { Mode = Multimedia.TimerMode.Periodic, Period = RefreshCountersInterval };
+                    _timer.Tick += _timer_Tick;
+                    _timer.Start();
+                }
+            } catch (Exception ex) {
+                Loggers.Log(Level.Error, "Failed starting the monitor.", ex);
+                Stop();
             }
             return base._started;
         }
 
-        private void _timer_Tick(object sender, EventArgs e) { if (IsConnected) InvokeOnMonitor(PollCounters()); }
+        private void _timer_Tick(object sender, EventArgs e) {
+            try {
+                if (IsConnected)
+                    InvokeOnMonitor(PollCounters());
+            } catch(Exception ex) {
+                Stop();
+                Loggers.Log(Level.Error, "Failed polling the counters. Monitor stopped.", ex);
+            }
+        }
 
         /// <summary>
         /// <para>Poll and transform counters in here. The timer will call this fx periodically.</para> 
@@ -69,21 +83,26 @@ namespace vApus.Monitor.Sources.Base {
         /// </summary>
         /// <returns>True if stopped.</returns>
         public override bool Stop() {
-            if (IsConnected && base._started) {
-                base._started = false;
-                if (_timer != null) {
-                    _timer.Stop();
-                    _timer.Dispose();
-                    _timer = null;
-                }
+            try {
+                if (base._started) {
+                    base._started = false;
+                    if (_timer != null) {
+                        _timer.Stop();
+                        _timer.Dispose();
+                        _timer = null;
+                    }
 
-                if (_sleepWaitHandle != null) {
-                    _sleepWaitHandle.Set();
-                    _sleepWaitHandle.Dispose();
-                    _sleepWaitHandle = null;
-                }
+                    if (_sleepWaitHandle != null) {
+                        _sleepWaitHandle.Set();
+                        _sleepWaitHandle.Dispose();
+                        _sleepWaitHandle = null;
+                    }
 
-                _wih = _wiwWithCounters = null;
+                    _wih = _wiwWithCounters = null;
+                }
+            } catch (Exception ex) {
+                base._started = true;
+                Loggers.Log(Level.Error, "Failed stopping the monitor.", ex);
             }
             return !base._started;
         }

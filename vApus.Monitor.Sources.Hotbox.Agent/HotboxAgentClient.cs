@@ -6,6 +6,7 @@
  *    Dieter Vandroemme
  */
 using Newtonsoft.Json;
+using RandomUtils.Log;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -56,29 +57,60 @@ namespace vApus.Monitor.Sources.Hotbox.Agent {
         }
 
         public override bool Start() {
-            if (IsConnected && !base._started) {
-                Write(_startSensors);
-                base._started = true;
-                _readMonitorCountersThread = new Thread(() => {
-                    while (base._started) {
-                        string counters = Read("{\"sensors\":[...]}");
-                        foreach (string line in counters.Split('\n'))
-                            base.InvokeOnMonitor(ParseCounters(line));
-                    }
-                });
-                _readMonitorCountersThread.Start();
+            try {
+                if (IsConnected && !base._started) {
+                    Write(_startSensors);
+                    base._started = true;
+                    _readMonitorCountersThread = new Thread(() => {
+                        while (base._started) {
+                            try {
+                                string counters = Read("{\"sensors\":[...]}");
+                                foreach (string line in counters.Split('\n'))
+                                    base.InvokeOnMonitor(ParseCounters(line));
+                            } catch (Exception exc) {
+                                StopOnCommunicationError();
+                                Loggers.Log(Level.Error, "Communication Error. Monitor Stopped.", exc);
+                            }
+                        }
+                    });
+                    _readMonitorCountersThread.Start();
+                }
+            } catch (Exception ex) {
+                StopOnCommunicationError();
+                Loggers.Log(Level.Error, "Failed starting the monitor.", ex);
             }
             return base._started;
         }
 
         public override bool Stop() {
+            try {
+                if (base._started) {
+                    base._started = false;
+                    if (_readMonitorCountersThread != null) {
+                        try { _readMonitorCountersThread.Join(); } catch { }
+                        _readMonitorCountersThread = null;
+                    }
+                    Write(_stopSensors);
+                }
+            } catch (Exception ex) {
+                base._started = true;
+                Loggers.Log(Level.Error, "Failed stopping the monitor.", ex);
+            }
+            return !base._started;
+        }
+
+        private bool StopOnCommunicationError() {
             if (base._started) {
                 base._started = false;
                 if (_readMonitorCountersThread != null) {
-                    _readMonitorCountersThread.Join();
+                    try { _readMonitorCountersThread.Join(); } catch { }
                     _readMonitorCountersThread = null;
                 }
-                Write(_stopSensors);
+                try {
+                    Write(_stopSensors);
+                } catch {
+                    //Ignore.
+                }
             }
             return !base._started;
         }

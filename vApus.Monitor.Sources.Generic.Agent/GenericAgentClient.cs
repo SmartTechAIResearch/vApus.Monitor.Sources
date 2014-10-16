@@ -102,8 +102,8 @@ namespace vApus.Monitor.Sources.Generic.Agent {
         public GenericAgentClient() : base() { }
 
         public override bool Start() {
-            if (IsConnected && !base._started) {
-                try {
+            try {
+                if (IsConnected && !base._started) {
                     //Reset the connecion to be sure.
                     _socket.Close();
                     Connect();
@@ -118,33 +118,38 @@ namespace vApus.Monitor.Sources.Generic.Agent {
                                 base.InvokeOnMonitor(ParseCounters(Read("[{\"name\":\"entity\",\"isAvailable\":true,\"subs\":[{\"name\":\"header\",\"subs\":...")));
                             } catch (Exception ex) {
                                 StopOnCommunicationError();
-                                Loggers.Log(Level.Error, "Communication Error", ex);
+                                Loggers.Log(Level.Error, "Communication Error. Monitor Stopped.", ex);
                             }
                     });
                     _readMonitorCountersThread.Start();
-                } catch (Exception ex) {
-                    StopOnCommunicationError();
-                    Loggers.Log(Level.Error, "Communication Error", ex);
                 }
+            } catch (Exception ex) {
+                StopOnCommunicationError();
+                Loggers.Log(Level.Error, "Failed starting the monitor. Monitor stopped.", ex);
             }
             return base._started;
         }
 
         public override bool Stop() {
-            if (base._started) {
-                base._started = false;
-                bool threadExitedNicely = true;
-                if (_readMonitorCountersThread != null && _readMonitorCountersThread.IsAlive) {
-                    if (!_readMonitorCountersThread.Join(5000)) {
-                        try { _readMonitorCountersThread.Abort(); } catch { }
-                        threadExitedNicely = false;
+            try {
+                if (base._started) {
+                    base._started = false;
+                    bool threadExitedNicely = true;
+                    if (_readMonitorCountersThread != null && _readMonitorCountersThread.IsAlive) {
+                        if (!_readMonitorCountersThread.Join(5000)) {
+                            try { _readMonitorCountersThread.Abort(); } catch { }
+                            threadExitedNicely = false;
+                        }
+
                     }
+                    _readMonitorCountersThread = null;
 
+                    if (threadExitedNicely)
+                        WriteRead("stop");
                 }
-                _readMonitorCountersThread = null;
-
-                if (threadExitedNicely)
-                    WriteRead("stop");
+            } catch (Exception ex) {
+                base._started = true;
+                Loggers.Log(Level.Error, "Failed stopping the monitor.", ex);
             }
             return !base._started;
         }
