@@ -283,7 +283,7 @@ namespace vApus.Monitor.Sources.ESXi {
                 foreach (PerfMetricSeriesCSV csvValue in perfEntityMetricCSV.value) {
                     PerformanceCounter counter = performanceCounters.Find(item => item.Id == csvValue.id.counterId);
 
-                    float value = float.Parse(csvValue.value);
+                    double value = double.Parse(csvValue.value);
                     //counters in procent are always multiplied times 100 by Vim.
                     if (counter.Unit.Equals("percent", StringComparison.CurrentCultureIgnoreCase))
                         value /= 100f;

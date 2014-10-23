@@ -1,4 +1,5 @@
-﻿/*
+﻿using RandomUtils.Log;
+/*
  * Copyright 2014 (c) Sizing Servers Lab
  * University College of West-Flanders, Department GKG
  * 
@@ -15,15 +16,10 @@ using vApus.Monitor.Sources.Base;
 
 namespace vApus.Monitor.Sources.Racktivity {
     internal class RacktivityEnergySwitchClient : BasePollingClient {
-        private string _hostNameOrIPAddress;
         private bool _isConnected;
 
         private string HostNameOrIPAddress {
-            get {
-                if (_hostNameOrIPAddress == null)
-                    _hostNameOrIPAddress = GetParameter("Host Name or IP address").Value as string;
-                return _hostNameOrIPAddress;
-            }
+            get { return GetParameter("Host Name or IP address").Value as string; }
         }
 
         public override bool IsConnected { get { return _isConnected; } }
@@ -61,7 +57,13 @@ namespace vApus.Monitor.Sources.Racktivity {
                 string username = GetParameter("Username").Value as string;
                 string password = GetParameter("Password").Value as string;
 
-                _isConnected = RMCPHelper.EnableDisableUDPAccess(HostNameOrIPAddress, username, password, true);
+                try {
+                    _isConnected = RMCPHelper.EnableDisableUDPAccess(HostNameOrIPAddress, username, password, true);
+                } catch (Exception ex) {
+                    //Failed to resolve the given host name for example.
+                    //Loggers.Log(Level.Error, "Failed connecting to the racktivity energy switch.", ex);
+                    //Handled in RacktivityClient.
+                }
             }
             return IsConnected;
         }
@@ -70,7 +72,7 @@ namespace vApus.Monitor.Sources.Racktivity {
             RMCPCounters counters = RMCPHelper.GetCounters(HostNameOrIPAddress);
 
             if (base._wih == null)
-                base._wih = base._wdyh.Clone();
+                base._wih = WDYH.Clone();
 
             for (int i = 0; i != 8; i++) {
                 int outlet = i + 1;

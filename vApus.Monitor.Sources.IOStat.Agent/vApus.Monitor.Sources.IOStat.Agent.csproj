@@ -4,51 +4,37 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{89B6B816-D1F2-4BC8-8C17-BFF44240DEFB}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{BF26573B-23D6-41B1-B2BD-63CB27B57E8C}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>vApus.Monitor.Sources.Tester</RootNamespace>
-    <AssemblyName>vApus.Monitor.Sources.Tester</AssemblyName>
+    <RootNamespace>vApus.Monitor.Sources.IOstat.Agent</RootNamespace>
+    <AssemblyName>vApus.Monitor.Sources.IOstat.Agent</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\Build\</OutputPath>
+    <OutputPath>..\Build\MonitorSourceClients\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\Build\</OutputPath>
+    <OutputPath>..\Build\MonitorSourceClients\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\Prerequisites\RandomUtils\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="RandomUtils">
-      <HintPath>..\Prerequisites\RandomUtils\RandomUtils.dll</HintPath>
-    </Reference>
-    <Reference Include="RandomUtils.Log">
-      <HintPath>..\Prerequisites\RandomUtils\RandomUtils.Log.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Json, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <Private>True</Private>
-      <HintPath>..\packages\System.Json.4.0.20126.16343\lib\net40\System.Json.dll</HintPath>
-    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -56,26 +42,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
+    <Compile Include="IOstatAgentClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Test.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\vApus.Monitor.Sources.Base\vApus.Monitor.Sources.Base.csproj">
       <Project>{a7248c1c-32c9-4943-8074-9c210511c475}</Project>
       <Name>vApus.Monitor.Sources.Base</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="config.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </Content>
-    <Content Include="README.TXT" />
+    <ProjectReference Include="..\vApus.Monitor.Sources.Generic.Agent\vApus.Monitor.Sources.Generic.Agent.csproj">
+      <Project>{7e2041cb-84dc-4d51-b786-2a3f79c6c504}</Project>
+      <Name>vApus.Monitor.Sources.Generic.Agent</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

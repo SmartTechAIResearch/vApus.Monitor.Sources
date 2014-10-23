@@ -20,7 +20,7 @@ namespace vApus.Monitor.Sources.ESXi {
         /// <summary>
         /// Only applicable if there are not instances.
         /// </summary>
-        public float? Value { get; set; }
+        public double? Value { get; set; }
 
         public List<Instance> Instances { get; set; }
     }
@@ -39,7 +39,7 @@ namespace vApus.Monitor.Sources.ESXi {
         private PerformanceCounterComparer() { }
 
         public int Compare(PerformanceCounter x, PerformanceCounter y) {
-            return x.Id.CompareTo(y.Id);
+            return x.DotNotatedName.CompareTo(y.DotNotatedName);
         }
     }
 }

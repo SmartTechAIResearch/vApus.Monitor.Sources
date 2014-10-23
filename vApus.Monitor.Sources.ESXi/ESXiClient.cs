@@ -18,14 +18,9 @@ using VimApi;
 namespace vApus.Monitor.Sources.ESXi {
     public class ESXiClient : BasePollingClient {
         private ESXiHelper _esxiHelper;
-        private string _hostNameOrIPAddress;
 
         private string HostNameOrIPAddress {
-            get {
-                if (_hostNameOrIPAddress == null)
-                    _hostNameOrIPAddress = GetParameter("Host Name or IP address").Value as string;
-                return _hostNameOrIPAddress;
-            }
+            get { return GetParameter("Host Name or IP address").Value as string; }
         }
 
         public override bool IsConnected { get { return _esxiHelper != null && _esxiHelper.IsReachable; } }

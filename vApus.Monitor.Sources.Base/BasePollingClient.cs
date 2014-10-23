@@ -1,4 +1,5 @@
-﻿/*
+﻿using RandomUtils.Log;
+/*
  * Copyright 2014 (c) Sizing Servers Lab
  * University College of West-Flanders, Department GKG
  * 
@@ -29,24 +30,41 @@ namespace vApus.Monitor.Sources.Base {
 
         private Multimedia.Timer _timer;
 
+        /// <summary>
+        /// Start polling.
+        /// </summary>
+        /// <returns>True if started.</returns>
         public override bool Start() {
-            if (IsConnected && !base._started) {
-                base._started = true;
-                _timer = new Multimedia.Timer() { Mode = Multimedia.TimerMode.Periodic, Period = RefreshCountersInterval };
-                _timer.Tick += _timer_Tick;
-                _timer.Start();
+            try {
+                if (IsConnected && !base._started) {
+                    base._started = true;
+                    _timer = new Multimedia.Timer() { Mode = Multimedia.TimerMode.Periodic, Period = RefreshCountersInterval };
+                    _timer.Tick += _timer_Tick;
+                    _timer.Start();
+                }
+            } catch (Exception ex) {
+                Loggers.Log(Level.Error, "Failed starting the monitor.", ex);
+                Stop();
             }
             return base._started;
         }
 
-        private void _timer_Tick(object sender, EventArgs e) { if (IsConnected) InvokeOnMonitor(PollCounters()); }
+        private void _timer_Tick(object sender, EventArgs e) {
+            try {
+                if (IsConnected)
+                    InvokeOnMonitor(PollCounters());
+            } catch(Exception ex) {
+                Stop();
+                Loggers.Log(Level.Error, "Failed polling the counters. Monitor stopped.", ex);
+            }
+        }
 
         /// <summary>
         /// <para>Poll and transform counters in here. The timer will call this fx periodically.</para> 
         /// <para>Example:</para>
         /// <para>RMCPCounters counters = RMCPHelper.GetCounters(HostNameOrIPAddress);</para>
         /// <para>protected override Entities PollCounters() {</para>
-        /// <para>if (_wih == null) _wih = base._wdyh.Clone();</para>
+        /// <para>if (_wih == null) _wih = WDYH.Clone();</para>
         /// <para>for (int i = 0; i != 8; i++) {</para>
         /// <para>int outlet = i + 1;</para>
         /// <para>var entity = _wih[i];</para>
@@ -60,25 +78,41 @@ namespace vApus.Monitor.Sources.Base {
         /// <returns>_wihWithCounters</returns>
         protected abstract Entities PollCounters();
 
+        /// <summary>
+        /// Stop polling.
+        /// </summary>
+        /// <returns>True if stopped.</returns>
         public override bool Stop() {
-            if (IsConnected && base._started) {
-                base._started = false;
-                if (_timer != null) {
-                    _timer.Stop();
-                    _timer.Dispose();
-                    _timer = null;
+            try {
+                if (base._started) {
+                    base._started = false;
+                    if (_timer != null) {
+                        _timer.Stop();
+                        _timer.Dispose();
+                        _timer = null;
+                    }
+
+                    if (_sleepWaitHandle != null) {
+                        _sleepWaitHandle.Set();
+                        _sleepWaitHandle.Dispose();
+                        _sleepWaitHandle = null;
+                    }
+
+                    _wih = _wiwWithCounters = null;
                 }
-
-                _sleepWaitHandle.Set();
-                _sleepWaitHandle.Dispose();
-                _sleepWaitHandle = null;
-
-                _wih = _wiwWithCounters = null;
+            } catch (Exception ex) {
+                base._started = true;
+                Loggers.Log(Level.Error, "Failed stopping the monitor.", ex);
             }
             return !base._started;
         }
 
-
+        /// <summary>
+        /// Function for the client tester.
+        /// </summary>
+        /// <param name="verboseConsoleOutput"></param>
+        /// <param name="id"></param>
+        /// <param name="parameterValues"></param>
         public override void Test(bool verboseConsoleOutput, int id, params object[] parameterValues) {
             base._verboseConsoleOutput = verboseConsoleOutput;
             base._id = id;
@@ -109,6 +143,7 @@ namespace vApus.Monitor.Sources.Base {
                     _started = true;
                     if (_verboseConsoleOutput) Console.WriteLine("Test " + base._id + " Reading and parsing counters 3 times...");
 
+                    _sleepWaitHandle = new AutoResetEvent(false);
                     for (int i = 0; i != 3; i++) {
                         ValidateCounters(PollCounters());
                         if (_sleepWaitHandle != null)

@@ -6,6 +6,7 @@
  *    Dieter Vandroemme
  */
 using Newtonsoft.Json;
+using RandomUtils.Log;
 using System;
 using System.Threading;
 using vApus.Monitor.Sources.Base;
@@ -50,7 +51,12 @@ namespace vApus.Monitor.Sources.Generic.Agent {
         public override string Config {
             get {
                 if (base._config == null)
-                    base._config = WriteRead("config");
+                    try {
+                        base._config = WriteRead("config");
+                    } catch (Exception ex) {
+                        base._config = "<config>Not available</config>";
+                        Loggers.Log(Level.Error, "Failed getting the config.", ex);
+                    }
                 return base._config;
             }
         }
@@ -96,33 +102,68 @@ namespace vApus.Monitor.Sources.Generic.Agent {
         public GenericAgentClient() : base() { }
 
         public override bool Start() {
-            if (IsConnected && !base._started) {
+            try {
+                if (IsConnected && !base._started) {
+                    //Reset the connecion to be sure.
+                    _socket.Close();
+                    Connect();
+                    WriteRead(WIWRepresentation);
 
-                //Reset the connecion to be sure.
-                _socket.Close();
-                Connect();
-                WriteRead(WIWRepresentation);
-
-                WriteRead("start");
-                base._started = true;
-                //Queue on another thread.
-                _readMonitorCountersThread = new Thread(() => {
-                    while (base._started)
-                        base.InvokeOnMonitor(ParseCounters(Read("[{\"name\":\"entity\",\"isAvailable\":true,\"subs\":[{\"name\":\"header\",\"subs\":...")));
-                });
-                _readMonitorCountersThread.Start();
+                    WriteRead("start");
+                    base._started = true;
+                    //Queue on another thread.
+                    _readMonitorCountersThread = new Thread(() => {
+                        while (base._started)
+                            try {
+                                base.InvokeOnMonitor(ParseCounters(Read("[{\"name\":\"entity\",\"isAvailable\":true,\"subs\":[{\"name\":\"header\",\"subs\":...")));
+                            } catch (Exception ex) {
+                                StopOnCommunicationError();
+                                Loggers.Log(Level.Error, "Communication Error. Monitor Stopped.", ex);
+                            }
+                    });
+                    _readMonitorCountersThread.Start();
+                }
+            } catch (Exception ex) {
+                StopOnCommunicationError();
+                Loggers.Log(Level.Error, "Failed starting the monitor. Monitor stopped.", ex);
             }
             return base._started;
         }
 
         public override bool Stop() {
+            try {
+                if (base._started) {
+                    base._started = false;
+                    bool threadExitedNicely = true;
+                    if (_readMonitorCountersThread != null && _readMonitorCountersThread.IsAlive) {
+                        if (!_readMonitorCountersThread.Join(5000)) {
+                            try { _readMonitorCountersThread.Abort(); } catch { }
+                            threadExitedNicely = false;
+                        }
+
+                    }
+                    _readMonitorCountersThread = null;
+
+                    if (threadExitedNicely)
+                        WriteRead("stop");
+                }
+            } catch (Exception ex) {
+                base._started = true;
+                Loggers.Log(Level.Error, "Failed stopping the monitor.", ex);
+            }
+            return !base._started;
+        }
+
+        private bool StopOnCommunicationError() {
             if (base._started) {
                 base._started = false;
-                if (_readMonitorCountersThread != null) {
-                    _readMonitorCountersThread.Join();
-                    _readMonitorCountersThread = null;
+                if (_readMonitorCountersThread != null && _readMonitorCountersThread.IsAlive) {
+                    try {
+                        if (!_readMonitorCountersThread.Join(5000))
+                            _readMonitorCountersThread.Abort();
+                    } catch { }
                 }
-                WriteRead("stop");
+                _readMonitorCountersThread = null;
             }
             return !base._started;
         }
@@ -140,6 +181,7 @@ namespace vApus.Monitor.Sources.Generic.Agent {
                 byte[] buffer = new byte[base._bufferSize];
                 base._socket.Receive(buffer);
                 read += SerializationHelper.Decode(buffer, SerializationHelper.TextEncoding.UTF8);
+                if (read.Length == 0) read = "\n"; //Connection error.
             }
             if (base._verboseConsoleOutput) {
                 Console.Write("In: ");
@@ -151,7 +193,7 @@ namespace vApus.Monitor.Sources.Generic.Agent {
             if (read == "404")
                 throw new Exception("404: expected " + expectedResponse.Trim());
             else if (read.Length == 0)
-                throw new Exception("The read message is empty.");
+                throw new Exception("The read message is empty. Probably the connection to the agent faulted.");
 
             return read;
         }

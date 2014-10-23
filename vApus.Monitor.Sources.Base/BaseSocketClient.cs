@@ -27,6 +27,9 @@ namespace vApus.Monitor.Sources.Base {
 
         private readonly ManualResetEvent _connectWaitHandle = new ManualResetEvent(true);
 
+        /// <summary>
+        /// 
+        /// </summary>
         protected Socket _socket;
 
         /// <summary>
@@ -43,6 +46,9 @@ namespace vApus.Monitor.Sources.Base {
         protected int _bufferSize = 8192;
         #endregion
 
+        /// <summary>
+        /// 
+        /// </summary>
         public override bool IsConnected { get { return _socket != null && _socket.Connected; } }
 
         /// <summary>
@@ -59,6 +65,7 @@ namespace vApus.Monitor.Sources.Base {
         /// <summary>
         /// Tries to connect to the host name or ip address in parameter "Host Name or IP address" with the port in parameter "Port".
         /// There is a connect timeout of 2 seconds for each host entry found in dns.
+        /// The send- and receive timeout is  60 seconds.
         /// </summary>
         /// <returns></returns>
         public override bool Connect() {
@@ -84,6 +91,7 @@ namespace vApus.Monitor.Sources.Base {
                         try {
                             System.Net.Sockets.Socket socket = new System.Net.Sockets.Socket(ipAddress.AddressFamily, _socketType, _protocolType);
                             socket.ReceiveBufferSize = socket.SendBufferSize = _bufferSize;
+                            socket.ReceiveTimeout = socket.SendTimeout = 60000;
 
                             _connectWaitHandle.Reset();
                             socket.BeginConnect(ipAddress, port, ConnectCallback, socket);

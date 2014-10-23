@@ -101,10 +101,7 @@ namespace vApus.Monitor.Sources.Base {
         /// </summary>
         public virtual Entities WIW {
             get { return _wiw; }
-            set {
-                if (_wiw != value)
-                    _wiw = value;
-            }
+            set { _wiw = value; }
         }
 
         /// <summary>
