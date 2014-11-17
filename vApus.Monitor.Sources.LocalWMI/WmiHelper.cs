@@ -80,7 +80,7 @@ namespace vApus.Monitor.Sources.LocalWMI {
             Thread.CurrentThread.CurrentCulture = Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
 
             var wdyh = new Entities();
-            var entity = new Entity(Environment.MachineName, true);
+            var entity = new Entity("Local WMI", true);
             string defaultInstance = "__Total__";
 
             PerformanceCounterCategory[] categories = PerformanceCounterCategory.GetCategories();
