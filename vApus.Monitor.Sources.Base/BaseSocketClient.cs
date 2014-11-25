@@ -77,6 +77,7 @@ namespace vApus.Monitor.Sources.Base {
 
                 try {
                     ipAddresses = Dns.GetHostEntry(hostNameOrIP).AddressList;
+                    if (ipAddresses.Length == 0) throw new Exception("(Reverse) lookup failed.");
                 } catch {
                     //If the entry could not be resolved (no dns).
                     IPAddress ipAddress;
