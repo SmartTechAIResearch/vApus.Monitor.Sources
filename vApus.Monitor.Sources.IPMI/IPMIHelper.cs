@@ -13,11 +13,13 @@ using System;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Windows.Forms;
 
 namespace vApus.Monitor.Sources.IPMI {
     internal class IPMIHelper {
         private Process _process;
+        private StringBuilder _output = new StringBuilder(), _error = new StringBuilder();
         private DataTable _sensorData;
 
         public string HostNameOrIPAddress { get; private set; }
@@ -42,18 +44,26 @@ namespace vApus.Monitor.Sources.IPMI {
             Password = password;
 
             _process = new Process();
-            _process.StartInfo = new ProcessStartInfo("cmd", string.Format("/C \"{0}\\MonitorSourceClients\\ipmiutil\" sensor -c -U {1} -P {2} -N {3}", Application.StartupPath, username, password, hostNameOrIPAddress));
+            _process.StartInfo = new ProcessStartInfo(Path.Combine(Application.StartupPath, "MonitorSourceClients\\ipmiutil"), string.Format(" sensor -c -U {0} -P {1} -N {2}", username, password, hostNameOrIPAddress));
             _process.StartInfo.UseShellExecute = false;
             _process.StartInfo.CreateNoWindow = true;
             _process.StartInfo.RedirectStandardOutput = true;
             _process.StartInfo.RedirectStandardInput = true;
             _process.StartInfo.RedirectStandardError = true;
 
+            _process.OutputDataReceived += _process_OutputDataReceived;
+            _process.ErrorDataReceived += _process_ErrorDataReceived;
+
             _sensorData = new DataTable("IPMI");
             _sensorData.Columns.Add("Sensor", typeof(string)); //name (unit)
             _sensorData.Columns.Add("Status", typeof(string));
             _sensorData.Columns.Add("Reading", typeof(double));
         }
+
+
+        private void _process_OutputDataReceived(object sender, DataReceivedEventArgs e) { _output.AppendLine(e.Data); }
+        private void _process_ErrorDataReceived(object sender, DataReceivedEventArgs e) { _error.AppendLine(e.Data); }
+
         /// <summary>
         /// 
         /// </summary>
@@ -63,14 +73,23 @@ namespace vApus.Monitor.Sources.IPMI {
         /// <para>Status can be OK or something else if not OK.</para>
         /// </returns>
         public DataTable FetchIPMISensorData() {
+            _output.Clear();
+            _error.Clear();
+
             _process.Start();
+            _process.BeginOutputReadLine();
+            _process.BeginErrorReadLine();
+
             _process.WaitForExit();
 
-            string output = null, error = null;
-            using (var sr = _process.StandardError) error = sr.ReadToEnd();
-            if (error != null && error.Length != 0) throw new Exception(error);
+            _process.CancelOutputRead();
+            _process.CancelErrorRead();
 
-            using (var sr = _process.StandardOutput) output = sr.ReadToEnd();
+            string error = _error.ToString();
+            if (!string.IsNullOrWhiteSpace(error)) throw new Exception(error);
+
+            string output = _output.ToString();
+
 
             _sensorData.Rows.Clear();
 
@@ -87,14 +106,22 @@ namespace vApus.Monitor.Sources.IPMI {
                             if (cells.Length == 7) {
                                 string[] readingArr = cells[6].Trim().Split(' ');
                                 if (readingArr.Length != 0) {
-                                    name += " (" + readingArr[1] + ")";
+                                    if (readingArr.Length > 1)
+                                        name += " (" + readingArr[1] + ")";
 
                                     var unparsedReading = readingArr[0].Split('.');
-                                    reading = double.Parse(unparsedReading[0]);
-                                    if (unparsedReading.Length == 2) { //Add decimal places.
-                                        double unparsedReading1 = double.Parse(unparsedReading[1]);
-                                        if (unparsedReading1 != 0)
-                                            reading += (unparsedReading1 / (int)(Math.Pow(10, unparsedReading1.ToString().Length)));
+                                    if (double.TryParse(unparsedReading[0], out reading)) {
+                                        if (unparsedReading.Length == 2) { //Add decimal places.
+                                            double unparsedReading1;
+                                            if (double.TryParse(unparsedReading[1], out unparsedReading1)) {
+                                                if (unparsedReading1 != 0)
+                                                    reading += (unparsedReading1 / (int)(Math.Pow(10, unparsedReading1.ToString().Length)));
+                                            } else {
+                                                reading = -1f;
+                                            }
+                                        }
+                                    } else {
+                                        reading = -1f;
                                     }
                                 }
                             }

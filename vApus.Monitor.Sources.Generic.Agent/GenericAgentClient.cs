@@ -116,6 +116,8 @@ namespace vApus.Monitor.Sources.Generic.Agent {
                         while (base._started)
                             try {
                                 base.InvokeOnMonitor(ParseCounters(Read("[{\"name\":\"entity\",\"isAvailable\":true,\"subs\":[{\"name\":\"header\",\"subs\":...")));
+                            }catch(JsonReaderException jex){
+                                Loggers.Log(Level.Error, "Communication Error. Dropping the counter.", jex);
                             } catch (Exception ex) {
                                 StopOnCommunicationError();
                                 Loggers.Log(Level.Error, "Communication Error. Monitor Stopped.", ex);
