@@ -25,6 +25,7 @@ namespace vApus.Monitor.Sources.IPMI {
         public string HostNameOrIPAddress { get; private set; }
         public string Username { get; private set; }
         public string Password { get; private set; }
+        public bool IPMI2dot0 { get; private set; }
 
         public bool IsReachable {
             get {
@@ -38,13 +39,17 @@ namespace vApus.Monitor.Sources.IPMI {
             }
         }
 
-        public IPMIHelper(string hostNameOrIPAddress, string username, string password) {
+        public IPMIHelper(string hostNameOrIPAddress, string username, string password, bool ipmi2dot0) {
             HostNameOrIPAddress = hostNameOrIPAddress;
             Username = username;
             Password = password;
+            IPMI2dot0 = ipmi2dot0;
+
+            string commandText = string.Format(" sensor -c -U {0} -P {1} -N {2}", username, password, hostNameOrIPAddress);
+            if (IPMI2dot0) commandText += " -J 3";
 
             _process = new Process();
-            _process.StartInfo = new ProcessStartInfo(Path.Combine(Application.StartupPath, "MonitorSourceClients\\ipmiutil"), string.Format(" sensor -c -U {0} -P {1} -N {2}", username, password, hostNameOrIPAddress));
+            _process.StartInfo = new ProcessStartInfo(Path.Combine(Application.StartupPath, "MonitorSourceClients\\ipmiutil"), commandText);
             _process.StartInfo.UseShellExecute = false;
             _process.StartInfo.CreateNoWindow = true;
             _process.StartInfo.RedirectStandardOutput = true;
@@ -61,8 +66,14 @@ namespace vApus.Monitor.Sources.IPMI {
         }
 
 
-        private void _process_OutputDataReceived(object sender, DataReceivedEventArgs e) { _output.AppendLine(e.Data); }
-        private void _process_ErrorDataReceived(object sender, DataReceivedEventArgs e) { _error.AppendLine(e.Data); }
+        private void _process_OutputDataReceived(object sender, DataReceivedEventArgs e) {
+            _output.AppendLine(e.Data);
+            Debug.WriteLine(e.Data);
+        }
+        private void _process_ErrorDataReceived(object sender, DataReceivedEventArgs e) {
+            _error.AppendLine(e.Data);
+            Debug.WriteLine(e.Data);
+        }
 
         /// <summary>
         /// 
@@ -86,7 +97,7 @@ namespace vApus.Monitor.Sources.IPMI {
             _process.CancelErrorRead();
 
             string error = _error.ToString();
-            if (!string.IsNullOrWhiteSpace(error)) throw new Exception(error);
+            if (error != null && error.Contains("error")) throw new Exception(error);
 
             string output = _output.ToString();
 
