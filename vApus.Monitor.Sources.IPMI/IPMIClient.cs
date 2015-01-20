@@ -49,7 +49,8 @@ namespace vApus.Monitor.Sources.IPMI {
             var hostNameOrIPAddress = new Parameter() { Name = "Host Name or IP address", Description = "Where the monitor source is bound to.", DefaultValue = string.Empty };
             var username = new Parameter() { Name = "Username", DefaultValue = "admin" };
             var password = new Parameter() { Name = "Password", DefaultValue = "1234", Encrypted = true };
-            base._parameters = new Parameter[] { hostNameOrIPAddress, username, password };
+            var ipmi2dot0 = new Parameter() { Name = "IPMI 2.0", DefaultValue = false };
+            base._parameters = new Parameter[] { hostNameOrIPAddress, username, password, ipmi2dot0 };
         }
 
         public override bool Connect() {
@@ -57,8 +58,9 @@ namespace vApus.Monitor.Sources.IPMI {
             if (!isConnected) {
                 string username = GetParameter("Username").Value as string;
                 string password = GetParameter("Password").Value as string;
+                bool ipmi2dot0 = (bool)GetParameter("IPMI 2.0").Value;
 
-                _ipmiHelper = new IPMIHelper(HostNameOrIPAddress, username, password);
+                _ipmiHelper = new IPMIHelper(HostNameOrIPAddress, username, password, ipmi2dot0);
                 isConnected = IsConnected;
             }
             return isConnected;
