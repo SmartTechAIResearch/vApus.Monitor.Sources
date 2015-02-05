@@ -180,7 +180,11 @@ namespace vApus.Monitor.Sources.Base {
                 }), counters);
         }
 
-        public bool Stop() { return _client.Stop(); }
+        public bool Stop() {
+            if (_client == null) 
+                return true;
+            return _client.Stop();
+        }
 
         public bool Disconnect() {
             if (_client == null)
