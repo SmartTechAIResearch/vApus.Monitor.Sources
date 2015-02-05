@@ -30,8 +30,8 @@ namespace vApus.Monitor.Sources.IPMI {
         public bool IsReachable {
             get {
                 try {
-                    FetchIPMISensorData();
-                    return true;
+                    DataTable sensorData = FetchIPMISensorData();
+                    return sensorData != null && sensorData.Rows.Count != 0;
                 } catch (Exception ex) {
                     Loggers.Log(Level.Warning, "Could not reach " + HostNameOrIPAddress, ex);
                 }
