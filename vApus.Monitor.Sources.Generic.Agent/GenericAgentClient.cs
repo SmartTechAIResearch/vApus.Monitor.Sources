@@ -6,11 +6,11 @@
  *    Dieter Vandroemme
  */
 using Newtonsoft.Json;
+using RandomUtils;
 using RandomUtils.Log;
 using System;
 using System.Threading;
 using vApus.Monitor.Sources.Base;
-using vApus.Monitor.Sources.Util;
 
 namespace vApus.Monitor.Sources.Generic.Agent {
     /// <summary>
