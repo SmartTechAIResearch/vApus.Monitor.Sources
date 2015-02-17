@@ -131,11 +131,11 @@ namespace vApus.Monitor.Sources.LocalWMI {
             foreach (ManagementObject mo in processors)
                 _processors[i++] = mo["Name"].ToString().Trim();
 
-            ManagementObjectCollection memory = new ManagementObjectSearcher(scope, new ObjectQuery("Select Capacity, Manufacturer, Model from Win32_PhysicalMemory")).Get();
+            ManagementObjectCollection memory = new ManagementObjectSearcher(scope, new ObjectQuery("Select Capacity, Manufacturer, Model, Speed from Win32_PhysicalMemory")).Get();
             _memory = new string[memory.Count];
             i = 0;
             foreach (ManagementObject mo in memory)
-                _memory[i++] = string.Format("{0} GB {1} {2} ({3})", ulong.Parse(mo["Capacity"].ToString()) / (1024 * 1024 * 1024), mo["Manufacturer"], mo["Model"]);
+                _memory[i++] = string.Format("{0} GB {1} {2} ({3} Mhz)", ulong.Parse(mo["Capacity"].ToString()) / (1024 * 1024 * 1024), mo["Manufacturer"], mo["Model"], mo["Speed"]);
 
 
             ManagementObjectCollection disks = new ManagementObjectSearcher(scope, new ObjectQuery("Select Size, Manufacturer, Model, InterfaceType from Win32_DiskDrive")).Get();
