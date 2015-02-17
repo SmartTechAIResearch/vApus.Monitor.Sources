@@ -31,7 +31,7 @@ namespace vApus.Monitor.Sources.LocalWMI {
             if (systemInformation.Get() != SystemInformation.Status.Success)
                 throw new Exception("Failed to get the hardware info.");
 
-            using (var writer = XmlWriter.Create(sb, new XmlWriterSettings())) {
+            using (var writer = XmlWriter.Create(sb, new XmlWriterSettings() { OmitXmlDeclaration = true })) {
                 writer.WriteStartElement("List");
 
                 // get all public instance properties
