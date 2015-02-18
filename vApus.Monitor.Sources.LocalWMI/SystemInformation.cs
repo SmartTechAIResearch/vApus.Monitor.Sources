@@ -1,6 +1,10 @@
-﻿//This file comes from CodeProject (http://www.codeproject.com/KB/IP/remotesysinformation.aspx)
-//The author is N. Smith and his website is http://www.simplyneatsoftware.com/
-//This has been slighty adjusted by me, Glenn Desmadryl
+﻿/*
+ * Copyright 2015 (c) Sizing Servers Lab
+ * University College of West-Flanders, Department GKG
+ * 
+ * Author(s):
+ *    Dieter Vandroemme
+ */
 
 using Microsoft.Win32;
 using System;
@@ -15,40 +19,12 @@ namespace vApus.Monitor.Sources.LocalWMI {
     /// Summary description for SystemInformation.
     /// </summary>
     public class SystemInformation {
-        #region Enums
-        public enum DriveTypes {
-            Unknown = 0,
-            No_Root_Directory = 1,
-            Removable_Disk = 2,
-            Local_Disk = 3,
-            Network_Drive = 4,
-            Compact_Disc = 5,
-            RAM_Disk = 6
-        }
-
-        public enum Status {
-            Success = 0,
-            AuthenticateFailure = 1,
-            UnauthorizedAccess = 2,
-            RPCServicesUnavailable = 3
-        }
-        #endregion
-
-        #region Structs
-        public struct LogicalDrive {
-            public String name;
-            public DriveTypes drivetype;
-            public ulong size;
-            public ulong freespace;
-            public String filesystem;
-        }
-
-        #endregion
 
         #region Fields
         private string _computer;
         private string _os;
         private string _system;
+        private string _baseBoard;
         private string _bios;
         private string _processors;
         private string _memory;
@@ -58,19 +34,13 @@ namespace vApus.Monitor.Sources.LocalWMI {
 
         #region Properties
         public string Computer { get { return _computer; } }
-
         public string OS { get { return _os; } }
-
         public string System { get { return _system; } }
-
+        public string BaseBoard { get { return _baseBoard; } }
         public string Bios { get { return _bios; } }
-
         public string Processors { get { return _processors; } }
-
         public string Memory { get { return _memory; } }
-
         public string Disks { get { return _disks; } }
-
         public string NetworkAdapters { get { return _networkAdapters; } }
         #endregion
 
@@ -103,61 +73,72 @@ namespace vApus.Monitor.Sources.LocalWMI {
         private void GetSystemInformation() {
             ManagementScope scope = ConnectScope();
 
-            foreach (ManagementObject mo in new ManagementClass(scope, new ManagementPath("Win32_OperatingSystem"), null).GetInstances()) {
+            ManagementObjectCollection col = new ManagementObjectSearcher(scope, new ObjectQuery("Select CSName, Version, Name, BuildNumber from Win32_OperatingSystem")).Get();
+            foreach (ManagementObject mo in col) {
                 _computer = mo["CSName"].ToString();
                 _os = string.Format("{0} {1} Build {2}", mo["Name"].ToString().Split("|".ToCharArray())[0], mo["Version"], mo["BuildNumber"]);
                 break;
             }
 
-            foreach (ManagementObject mo in new ManagementClass(scope, new ManagementPath("Win32_ComputerSystem"), null).GetInstances()) {
+            col = new ManagementObjectSearcher(scope, new ObjectQuery("Select Manufacturer, Model, Domain from Win32_ComputerSystem")).Get();
+            foreach (ManagementObject mo in col) {
                 _system = mo["Manufacturer"].ToString() + " - " + mo["Model"].ToString();
                 _computer += "." + mo["Domain"].ToString();
                 break;
             }
 
-            foreach (ManagementObject mo in new ManagementClass(scope, new ManagementPath("Win32_BIOS"), null).GetInstances()) {
-                _bios = mo["Version"].ToString();
+            col = new ManagementObjectSearcher(scope, new ObjectQuery("Select Name from Win32_BIOS WHERE PrimaryBIOS='True'")).Get();
+            foreach (ManagementObject mo in col) {
+                _bios = mo["Name"].ToString().Trim();
                 break;
             }
 
-            ManagementObjectCollection processors = new ManagementObjectSearcher(scope, new ObjectQuery("Select Name from Win32_Processor")).Get();
-            var arr = new string[processors.Count];
+            col = new ManagementObjectSearcher(scope, new ObjectQuery("Select * from Win32_BaseBoard")).Get();
+            foreach (ManagementObject mo in col) {
+                _baseBoard = string.Empty;
+                if (mo["Manufacturer"] != null) _baseBoard += mo["Manufacturer"] ?? "Unknown manufacturer";
+                if (mo["Model"] != null) _baseBoard += " - model: " + mo["Model"];
+                if (mo["Product"] != null) _baseBoard += " - product: " + mo["Product"];
+                if (mo["PartNumber"] != null) _baseBoard += " - part number: " + mo["PartNumber"];
+            }
+
+            col = new ManagementObjectSearcher(scope, new ObjectQuery("Select Name from Win32_Processor")).Get();
+            var arr = new string[col.Count];
             int i = 0;
-            foreach (ManagementObject mo in processors)
+            foreach (ManagementObject mo in col)
                 arr[i++] = mo["Name"].ToString().Trim();
             _processors = Combine(arr);
 
-            ManagementObjectCollection memory = new ManagementObjectSearcher(scope, new ObjectQuery("Select Capacity, Manufacturer, Model, Speed from Win32_PhysicalMemory")).Get();
-            arr = new string[memory.Count];
+            col = new ManagementObjectSearcher(scope, new ObjectQuery("Select Capacity, Manufacturer, Model, PartNumber, SerialNumber, Speed from Win32_PhysicalMemory")).Get();
+            arr = new string[col.Count];
             i = 0;
-            foreach (ManagementObject mo in memory) {
-                string ram = ulong.Parse(mo["Capacity"].ToString()) / (1024 * 1024 * 1024) + " GB - ";
-                if (mo["Manufacturer"] != null) ram += mo["Manufacturer"];
-                if (mo["Model"] != null) ram += mo["Model"];
+            foreach (ManagementObject mo in col) {
+                string ram = ulong.Parse(mo["Capacity"].ToString()) / (1024 * 1024 * 1024) + " GB";
+                if (mo["Manufacturer"] != null) ram += " - manufacturer: " + mo["Manufacturer"];
+                if (mo["Model"] != null) ram += " - model: " + mo["Model"];
+                if (mo["PartNumber"] != null) ram += " - part number: " + mo["PartNumber"];
 
                 if (mo["Manufacturer"] == null && mo["Model"] == null)
-                    ram += "unknown manufacturer and model";
+                    ram += " - unknown manufacturer and model";
 
                 ram += " (" + (mo["Speed"] ?? "?") + " Mhz)";
 
                 arr[i++] = ram;
             }
-                _memory = Combine(arr);
+            _memory = Combine(arr);
 
-            ManagementObjectCollection disks = new ManagementObjectSearcher(scope, new ObjectQuery("Select Size, Model from Win32_DiskDrive where InterfaceType != 'USB'")).Get();
-            arr = new string[disks.Count];
+            col = new ManagementObjectSearcher(scope, new ObjectQuery("Select Size, Model from Win32_DiskDrive where InterfaceType != 'USB'")).Get();
+            arr = new string[col.Count];
             i = 0;
-            foreach (ManagementObject mo in disks) 
+            foreach (ManagementObject mo in col)
                 arr[i++] = string.Format("{0} GB - {1}", ulong.Parse(mo["Size"].ToString()) / (1024 * 1024 * 1024), mo["Model"]);
-            
+
             _disks = Combine(arr);
 
             scope = ConnectScope("root\\StandardCimv2");
-            //Only real nics are selected.
-            //ManagementObjectCollection adapters = new ManagementObjectSearcher(scope, new ObjectQuery(@"SELECT Description FROM Win32_NetworkAdapter WHERE  Manufacturer != 'Microsoft' AND NOT PNPDeviceID LIKE 'ROOT\\%'")).Get();
-            ManagementObjectCollection adapters = new ManagementObjectSearcher(scope, new ObjectQuery(@"SELECT Name, DriverDescription, MediaConnectState FROM MSFT_NetAdapter WHERE MediaConnectState != '0'")).Get();
-            var  l = new List<string>(adapters.Count);
-            foreach (ManagementObject mo in adapters) {
+            col = new ManagementObjectSearcher(scope, new ObjectQuery(@"SELECT Name, DriverDescription, MediaConnectState FROM MSFT_NetAdapter WHERE MediaConnectState != '0'")).Get();
+            var l = new List<string>(col.Count);
+            foreach (ManagementObject mo in col) {
                 string s = mo["Name"] + " - " + mo["DriverDescription"];
                 uint mediaConnectState = uint.Parse(mo["MediaConnectState"].ToString());
                 if (mediaConnectState == 1)
