@@ -134,24 +134,26 @@ namespace vApus.Monitor.Sources.LocalWMI {
                 arr[i++] = string.Format("{0} GB - {1} - {2} ({3} Mhz)", ulong.Parse(mo["Capacity"].ToString()) / (1024 * 1024 * 1024), mo["Manufacturer"] ?? "unknown manufacturer", mo["Model"] ?? "unknown model", mo["Speed"] ?? "?");
             _memory = Combine(arr);
 
-            ManagementObjectCollection disks = new ManagementObjectSearcher(scope, new ObjectQuery("Select Size, Manufacturer, Model, InterfaceType from Win32_DiskDrive")).Get();
+            ManagementObjectCollection disks = new ManagementObjectSearcher(scope, new ObjectQuery("Select Size, Manufacturer, Caption, Model from Win32_DiskDrive where InterfaceType != 'USB'")).Get();
             arr = new string[disks.Count];
             i = 0;
-            foreach (ManagementObject mo in disks)
-                arr[i++] = string.Format("{0} GB - {1} - {2} ({3})", ulong.Parse(mo["Size"].ToString()) / (1024 * 1024 * 1024), mo["Manufacturer"], mo["Model"], mo["InterfaceType"]);
+            foreach (ManagementObject mo in disks) {
+                string manufacturer = mo["Manufacturer"].ToString();
+                if (manufacturer == "(Standard disk drives)")
+                    manufacturer = mo["Caption"].ToString();
+                arr[i++] = string.Format("{0} GB - {1} - {2}", ulong.Parse(mo["Size"].ToString()) / (1024 * 1024 * 1024), manufacturer, mo["Model"]);
+            }
             _disks = Combine(arr);
 
             scope = ConnectScope("root\\StandardCimv2");
             //Only real nics are selected.
             //ManagementObjectCollection adapters = new ManagementObjectSearcher(scope, new ObjectQuery(@"SELECT Description FROM Win32_NetworkAdapter WHERE  Manufacturer != 'Microsoft' AND NOT PNPDeviceID LIKE 'ROOT\\%'")).Get();
-            ManagementObjectCollection adapters = new ManagementObjectSearcher(scope, new ObjectQuery(@"SELECT Name, DriverDescription, MediaConnectState FROM MSFT_NetAdapter")).Get();
+            ManagementObjectCollection adapters = new ManagementObjectSearcher(scope, new ObjectQuery(@"SELECT Name, DriverDescription, MediaConnectState FROM MSFT_NetAdapter WHERE MediaConnectState != '0'")).Get();
             arr = new string[adapters.Count];
             i = 0;
-            foreach (ManagementObject adapter in adapters) {
-                string s = adapter["Name"] + " - " + adapter["DriverDescription"];
-                uint mediaConnectState = uint.Parse(adapter["MediaConnectState"].ToString());
-                if (mediaConnectState == 0)
-                    s += " (unknown connection state)";
+            foreach (ManagementObject mo in adapters) {
+                string s = mo["Name"] + " - " + mo["DriverDescription"];
+                uint mediaConnectState = uint.Parse(mo["MediaConnectState"].ToString());
                 if (mediaConnectState == 1)
                     s += " (connected)";
                 else if (mediaConnectState == 2)
