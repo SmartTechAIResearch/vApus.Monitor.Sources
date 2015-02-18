@@ -28,7 +28,7 @@ namespace vApus.Monitor.Sources.LocalWMI {
             var sb = new StringBuilder();
 
             var systemInformation = new SystemInformation();
-            if (systemInformation.Get() != SystemInformation.Status.Success)
+            if (!systemInformation.Get())
                 throw new Exception("Failed to get the hardware info.");
 
             using (var writer = XmlWriter.Create(sb, new XmlWriterSettings() { OmitXmlDeclaration = true })) {
@@ -37,8 +37,12 @@ namespace vApus.Monitor.Sources.LocalWMI {
                 // get all public instance properties
                 PropertyInfo[] propertyInfos = typeof(SystemInformation).GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
-                foreach (PropertyInfo propInfo in propertyInfos)
-                    RecursiveReflectionReader(writer, propInfo.Name, propInfo.GetValue(systemInformation, null));
+                foreach (PropertyInfo propInfo in propertyInfos) {
+                    writer.WriteStartElement(propInfo.Name);
+                    writer.WriteValue(propInfo.GetValue(systemInformation, null).ToString());
+                    writer.WriteEndElement();
+
+                }
 
 
                 writer.WriteEndElement();
@@ -48,31 +52,6 @@ namespace vApus.Monitor.Sources.LocalWMI {
 
             Thread.CurrentThread.CurrentCulture = prevCulture;
             return sb.ToString();
-        }
-        private void RecursiveReflectionReader(XmlWriter writer, string name, object obj) {
-            writer.WriteStartElement(name);
-
-            if (obj is Array) {
-                foreach (object objInArray in (obj as Array)) {
-                    // get all public instance properties
-                    FieldInfo[] fieldInfos = objInArray.GetType().GetFields();
-
-                    //makes a new element with the name 
-                    writer.WriteStartElement(objInArray.GetType().Name);
-
-                    foreach (FieldInfo propInfo in fieldInfos)
-                        RecursiveReflectionReader(writer, propInfo.Name, propInfo.GetValue(objInArray));
-
-                    writer.WriteEndElement();
-
-                }
-            } else {
-                try { writer.WriteValue(obj.ToString()); } catch {
-                    //We do not care.
-                }
-            }
-
-            writer.WriteEndElement();
         }
 
         public Entities GetWDYH() {
