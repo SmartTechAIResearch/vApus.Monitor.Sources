@@ -130,27 +130,33 @@ namespace vApus.Monitor.Sources.LocalWMI {
             ManagementObjectCollection memory = new ManagementObjectSearcher(scope, new ObjectQuery("Select Capacity, Manufacturer, Model, Speed from Win32_PhysicalMemory")).Get();
             arr = new string[memory.Count];
             i = 0;
-            foreach (ManagementObject mo in memory)
-                arr[i++] = string.Format("{0} GB - {1} - {2} ({3} Mhz)", ulong.Parse(mo["Capacity"].ToString()) / (1024 * 1024 * 1024), mo["Manufacturer"] ?? "unknown manufacturer", mo["Model"] ?? "unknown model", mo["Speed"] ?? "?");
-            _memory = Combine(arr);
+            foreach (ManagementObject mo in memory) {
+                string ram = ulong.Parse(mo["Capacity"].ToString()) / (1024 * 1024 * 1024) + " GB - ";
+                if (mo["Manufacturer"] != null) ram += mo["Manufacturer"];
+                if (mo["Model"] != null) ram += mo["Model"];
 
-            ManagementObjectCollection disks = new ManagementObjectSearcher(scope, new ObjectQuery("Select Size, Manufacturer, Caption, Model from Win32_DiskDrive where InterfaceType != 'USB'")).Get();
+                if (mo["Manufacturer"] == null && mo["Model"] == null)
+                    ram += "unknown manufacturer and model";
+
+                ram += " (" + (mo["Speed"] ?? "?") + " Mhz)";
+
+                arr[i++] = ram;
+            }
+                _memory = Combine(arr);
+
+            ManagementObjectCollection disks = new ManagementObjectSearcher(scope, new ObjectQuery("Select Size, Model from Win32_DiskDrive where InterfaceType != 'USB'")).Get();
             arr = new string[disks.Count];
             i = 0;
-            foreach (ManagementObject mo in disks) {
-                string manufacturer = mo["Manufacturer"].ToString();
-                if (manufacturer == "(Standard disk drives)")
-                    manufacturer = mo["Caption"].ToString();
-                arr[i++] = string.Format("{0} GB - {1} - {2}", ulong.Parse(mo["Size"].ToString()) / (1024 * 1024 * 1024), manufacturer, mo["Model"]);
-            }
+            foreach (ManagementObject mo in disks) 
+                arr[i++] = string.Format("{0} GB - {1}", ulong.Parse(mo["Size"].ToString()) / (1024 * 1024 * 1024), mo["Model"]);
+            
             _disks = Combine(arr);
 
             scope = ConnectScope("root\\StandardCimv2");
             //Only real nics are selected.
             //ManagementObjectCollection adapters = new ManagementObjectSearcher(scope, new ObjectQuery(@"SELECT Description FROM Win32_NetworkAdapter WHERE  Manufacturer != 'Microsoft' AND NOT PNPDeviceID LIKE 'ROOT\\%'")).Get();
             ManagementObjectCollection adapters = new ManagementObjectSearcher(scope, new ObjectQuery(@"SELECT Name, DriverDescription, MediaConnectState FROM MSFT_NetAdapter WHERE MediaConnectState != '0'")).Get();
-            arr = new string[adapters.Count];
-            i = 0;
+            var  l = new List<string>(adapters.Count);
             foreach (ManagementObject mo in adapters) {
                 string s = mo["Name"] + " - " + mo["DriverDescription"];
                 uint mediaConnectState = uint.Parse(mo["MediaConnectState"].ToString());
@@ -159,9 +165,10 @@ namespace vApus.Monitor.Sources.LocalWMI {
                 else if (mediaConnectState == 2)
                     s += " (disconnected)";
 
-                arr[i++] = s;
+                l.Add(s);
             }
-            _networkAdapters = Combine(arr);
+            l.Sort();
+            _networkAdapters = Combine(l.ToArray());
         }
 
         /// <summary>
