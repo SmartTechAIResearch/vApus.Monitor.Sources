@@ -136,19 +136,31 @@ namespace vApus.Monitor.Sources.LocalWMI {
             _disks = Combine(arr);
 
             scope = ConnectScope("root\\StandardCimv2");
-            col = new ManagementObjectSearcher(scope, new ObjectQuery(@"SELECT Name, DriverDescription, MediaConnectState FROM MSFT_NetAdapter WHERE MediaConnectState != '0'")).Get();
-            var l = new List<string>(col.Count);
+
+            col = new ManagementObjectSearcher(scope, new ObjectQuery("SELECT Name, DriverDescription, MediaConnectState FROM MSFT_NetAdapter WHERE HardwareInterface = 'True' AND EndpointInterface = 'False'")).Get();
+            var d = new SortedDictionary<uint, SortedSet<string>>();
             foreach (ManagementObject mo in col) {
                 string s = mo["Name"] + " - " + mo["DriverDescription"];
                 uint mediaConnectState = uint.Parse(mo["MediaConnectState"].ToString());
-                if (mediaConnectState == 1)
-                    s += " (connected)";
-                else if (mediaConnectState == 2)
-                    s += " (disconnected)";
 
-                l.Add(s);
+                uint sortedState = mediaConnectState;
+                if (mediaConnectState == 0) {
+                    s += " (unknown status)";
+                    sortedState = 3;
+                } else if (mediaConnectState == 1) {
+                    s += " (connected)";
+                } else if (mediaConnectState == 2) {
+                    s += " (disconnected)";
+                }
+
+                if (!d.ContainsKey(sortedState)) d.Add(sortedState, new SortedSet<string>());
+                d[sortedState].Add(s);
             }
-            l.Sort();
+            var l = new List<string>(col.Count);
+            for (uint j = 1; j != 4; j++)
+                if (d.ContainsKey(j))
+                    l.AddRange(d[j]);
+
             _networkAdapters = Combine(l.ToArray());
         }
 
