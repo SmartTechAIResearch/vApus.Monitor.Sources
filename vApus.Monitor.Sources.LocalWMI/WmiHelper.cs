@@ -9,12 +9,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Xml;
 using vApus.Monitor.Sources.Base;
 
 namespace vApus.Monitor.Sources.LocalWMI {
@@ -31,24 +28,18 @@ namespace vApus.Monitor.Sources.LocalWMI {
             if (!systemInformation.Get())
                 throw new Exception("Failed to get the hardware info.");
 
-            using (var writer = XmlWriter.Create(sb, new XmlWriterSettings() { OmitXmlDeclaration = true })) {
-                writer.WriteStartElement("List");
+            // get all public instance properties
+            PropertyInfo[] propertyInfos = typeof(SystemInformation).GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
-                // get all public instance properties
-                PropertyInfo[] propertyInfos = typeof(SystemInformation).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-
-                foreach (PropertyInfo propInfo in propertyInfos) {
-                    writer.WriteStartElement(propInfo.Name);
-                    writer.WriteValue(propInfo.GetValue(systemInformation, null).ToString());
-                    writer.WriteEndElement();
-
+            foreach (PropertyInfo propInfo in propertyInfos) {
+                sb.AppendLine(propInfo.Name);
+                string value = propInfo.GetValue(systemInformation, null).ToString();
+                foreach (string line in value.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)) {
+                    sb.Append("  ");
+                    sb.AppendLine(line);
                 }
-
-
-                writer.WriteEndElement();
-                writer.Flush();
+                sb.AppendLine();
             }
-
 
             Thread.CurrentThread.CurrentCulture = prevCulture;
             return sb.ToString();

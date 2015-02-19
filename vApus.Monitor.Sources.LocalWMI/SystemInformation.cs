@@ -6,12 +6,9 @@
  *    Dieter Vandroemme
  */
 
-using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Management;
-using System.Net;
 using System.Text;
 
 namespace vApus.Monitor.Sources.LocalWMI {
@@ -24,24 +21,24 @@ namespace vApus.Monitor.Sources.LocalWMI {
         private string _computer;
         private string _os;
         private string _system;
-        private string _baseBoard;
+        private string _baseboard;
         private string _bios;
         private string _processors;
         private string _memory;
         private string _disks;
-        private string _networkAdapters;
+        private string _nics;
         #endregion
 
         #region Properties
         public string Computer { get { return _computer; } }
         public string OS { get { return _os; } }
         public string System { get { return _system; } }
-        public string BaseBoard { get { return _baseBoard; } }
+        public string Baseboard { get { return _baseboard; } }
         public string Bios { get { return _bios; } }
         public string Processors { get { return _processors; } }
         public string Memory { get { return _memory; } }
         public string Disks { get { return _disks; } }
-        public string NetworkAdapters { get { return _networkAdapters; } }
+        public string NICs { get { return _nics; } }
         #endregion
 
         public SystemInformation() { }
@@ -75,15 +72,15 @@ namespace vApus.Monitor.Sources.LocalWMI {
 
             ManagementObjectCollection col = new ManagementObjectSearcher(scope, new ObjectQuery("Select CSName, Version, Name, BuildNumber from Win32_OperatingSystem")).Get();
             foreach (ManagementObject mo in col) {
-                _computer = mo["CSName"].ToString();
-                _os = string.Format("{0} {1} Build {2}", mo["Name"].ToString().Split("|".ToCharArray())[0], mo["Version"], mo["BuildNumber"]);
+                _computer = mo["CSName"].ToString().Trim();
+                _os = string.Format("{0} {1} Build {2}", mo["Name"].ToString().Split("|".ToCharArray())[0].Trim(), mo["Version"].ToString().Trim(), mo["BuildNumber"].ToString().Trim());
                 break;
             }
 
             col = new ManagementObjectSearcher(scope, new ObjectQuery("Select Manufacturer, Model, Domain from Win32_ComputerSystem")).Get();
             foreach (ManagementObject mo in col) {
-                _system = mo["Manufacturer"].ToString() + " - " + mo["Model"].ToString();
-                _computer += "." + mo["Domain"].ToString();
+                _system = mo["Manufacturer"].ToString().Trim() + " - " + mo["Model"].ToString().Trim();
+                _computer += "." + mo["Domain"].ToString().Trim();
                 break;
             }
 
@@ -95,11 +92,11 @@ namespace vApus.Monitor.Sources.LocalWMI {
 
             col = new ManagementObjectSearcher(scope, new ObjectQuery("Select * from Win32_BaseBoard")).Get();
             foreach (ManagementObject mo in col) {
-                _baseBoard = string.Empty;
-                if (mo["Manufacturer"] != null) _baseBoard += mo["Manufacturer"] ?? "Unknown manufacturer";
-                if (mo["Model"] != null) _baseBoard += " - model: " + mo["Model"];
-                if (mo["Product"] != null) _baseBoard += " - product: " + mo["Product"];
-                if (mo["PartNumber"] != null) _baseBoard += " - part number: " + mo["PartNumber"];
+                _baseboard = string.Empty;
+                if (mo["Manufacturer"] != null) _baseboard += (mo["Manufacturer"] ?? "Unknown manufacturer").ToString().Trim();
+                if (mo["Model"] != null) _baseboard += " - model: " + mo["Model"].ToString().Trim();
+                if (mo["Product"] != null) _baseboard += " - product: " + mo["Product"].ToString().Trim();
+                if (mo["PartNumber"] != null) _baseboard += " - part number: " + mo["PartNumber"].ToString().Trim();
             }
 
             col = new ManagementObjectSearcher(scope, new ObjectQuery("Select Name from Win32_Processor")).Get();
@@ -113,15 +110,15 @@ namespace vApus.Monitor.Sources.LocalWMI {
             arr = new string[col.Count];
             i = 0;
             foreach (ManagementObject mo in col) {
-                string ram = ulong.Parse(mo["Capacity"].ToString()) / (1024 * 1024 * 1024) + " GB";
-                if (mo["Manufacturer"] != null) ram += " - manufacturer: " + mo["Manufacturer"];
-                if (mo["Model"] != null) ram += " - model: " + mo["Model"];
-                if (mo["PartNumber"] != null) ram += " - part number: " + mo["PartNumber"];
+                string ram = ulong.Parse(mo["Capacity"].ToString().Trim()) / (1024 * 1024 * 1024) + " GB";
+                if (mo["Manufacturer"] != null) ram += " - manufacturer: " + mo["Manufacturer"].ToString().Trim();
+                if (mo["Model"] != null) ram += " - model: " + mo["Model"].ToString().Trim();
+                if (mo["PartNumber"] != null) ram += " - part number: " + mo["PartNumber"].ToString().Trim();
 
                 if (mo["Manufacturer"] == null && mo["Model"] == null)
                     ram += " - unknown manufacturer and model";
 
-                ram += " (" + (mo["Speed"] ?? "?") + " Mhz)";
+                ram += " (" + (mo["Speed"] ?? "?").ToString().Trim() + " Mhz)";
 
                 arr[i++] = ram;
             }
@@ -131,7 +128,7 @@ namespace vApus.Monitor.Sources.LocalWMI {
             arr = new string[col.Count];
             i = 0;
             foreach (ManagementObject mo in col)
-                arr[i++] = string.Format("{0} GB - {1}", ulong.Parse(mo["Size"].ToString()) / (1024 * 1024 * 1024), mo["Model"]);
+                arr[i++] = string.Format("{0} GB - {1}", ulong.Parse(mo["Size"].ToString().Trim()) / (1024 * 1024 * 1024), mo["Model"].ToString().Trim());
 
             _disks = Combine(arr);
 
@@ -140,8 +137,8 @@ namespace vApus.Monitor.Sources.LocalWMI {
             col = new ManagementObjectSearcher(scope, new ObjectQuery("SELECT Name, DriverDescription, MediaConnectState FROM MSFT_NetAdapter WHERE HardwareInterface = 'True' AND EndpointInterface = 'False'")).Get();
             var d = new SortedDictionary<uint, SortedSet<string>>();
             foreach (ManagementObject mo in col) {
-                string s = mo["Name"] + " - " + mo["DriverDescription"];
-                uint mediaConnectState = uint.Parse(mo["MediaConnectState"].ToString());
+                string s = mo["Name"] + " - " + mo["DriverDescription"].ToString().Trim();
+                uint mediaConnectState = uint.Parse(mo["MediaConnectState"].ToString().Trim());
 
                 uint sortedState = mediaConnectState;
                 if (mediaConnectState == 0) {
@@ -161,7 +158,7 @@ namespace vApus.Monitor.Sources.LocalWMI {
                 if (d.ContainsKey(j))
                     l.AddRange(d[j]);
 
-            _networkAdapters = Combine(l.ToArray());
+            _nics = Combine(l.ToArray());
         }
 
         /// <summary>
