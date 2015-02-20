@@ -19,6 +19,7 @@ using System.Windows.Forms;
 namespace vApus.Monitor.Sources.IPMI {
     internal class IPMIHelper {
         private Process _process;
+        private string _commandText;
         private StringBuilder _output = new StringBuilder(), _error = new StringBuilder();
         private DataTable _sensorData;
 
@@ -45,11 +46,12 @@ namespace vApus.Monitor.Sources.IPMI {
             Password = password;
             IPMI2dot0 = ipmi2dot0;
 
-            string commandText = string.Format(" sensor -c -U {0} -P {1} -N {2}", username, password, hostNameOrIPAddress);
-            if (IPMI2dot0) commandText += " -J 3";
+            _commandText = string.Format(" sensor -c -U {0} -P {1} -N {2}", username, password, hostNameOrIPAddress);
+            if (IPMI2dot0) _commandText += " -J 3";
 
             _process = new Process();
-            _process.StartInfo = new ProcessStartInfo(Path.Combine(Application.StartupPath, "MonitorSourceClients\\ipmiutil"), commandText);
+            _process.StartInfo = new ProcessStartInfo(Path.Combine(Application.StartupPath, "MonitorSourceClients\\ipmiutil"));
+            _process.StartInfo.Arguments = _commandText;
             _process.StartInfo.UseShellExecute = false;
             _process.StartInfo.CreateNoWindow = true;
             _process.StartInfo.RedirectStandardOutput = true;
@@ -60,6 +62,7 @@ namespace vApus.Monitor.Sources.IPMI {
             _process.ErrorDataReceived += _process_ErrorDataReceived;
 
             _sensorData = new DataTable("IPMI");
+            _sensorData.Columns.Add("ID", typeof(string));
             _sensorData.Columns.Add("Sensor", typeof(string)); //name (unit)
             _sensorData.Columns.Add("Status", typeof(string));
             _sensorData.Columns.Add("Reading", typeof(double));
@@ -78,12 +81,35 @@ namespace vApus.Monitor.Sources.IPMI {
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="sensorIds">None given, all returned.</param>
         /// <returns>
-        /// <para>A datatable with columns: Sensor, Status, Reading</para>
-        /// <para>of types: string, string, double</para>
+        /// <para>A datatable with columns: ID, Sensor, Status, Reading</para>
+        /// <para>of types: string, string, string, double</para>
         /// <para>Status can be OK or something else if not OK.</para>
         /// </returns>
-        public DataTable FetchIPMISensorData() {
+        public DataTable FetchIPMISensorData(params string[] sensorIds) {
+            _sensorData.Rows.Clear();
+
+            string output = null;
+                        
+            if (sensorIds.Length == 0) {
+                _process.StartInfo.Arguments = _commandText; 
+                output = GetOutput();
+            } else {
+                var sb = new StringBuilder();
+                foreach (string sensorId in sensorIds) {
+                    _process.StartInfo.Arguments = _commandText + " -i " + sensorId;
+                    sb.AppendLine(GetOutput());
+                }
+                output = sb.ToString().Trim();
+            }
+
+            AddOutputToSensorData(output);
+
+            return _sensorData;
+        }
+
+        private string GetOutput() {
             _output.Clear();
             _error.Clear();
 
@@ -99,17 +125,16 @@ namespace vApus.Monitor.Sources.IPMI {
             string error = _error.ToString();
             if (error != null && error.Contains("error")) throw new Exception(error);
 
-            string output = _output.ToString();
-
-
-            _sensorData.Rows.Clear();
-
+            return _output.ToString();
+        }
+        private void AddOutputToSensorData(string output) {
             if (output.Contains("|")) {
                 var arr = output.Split('\r', '\n');
                 foreach (string row in arr)
                     if (row.Contains("|")) {
                         var cells = row.Split('|');
                         if (!cells[0].Contains("ID")) {
+                            string id = cells[0].Trim();
                             string name = cells[4].Trim();
                             string status = cells[5].Trim();
                             double reading = -1f;
@@ -136,12 +161,10 @@ namespace vApus.Monitor.Sources.IPMI {
                                     }
                                 }
                             }
-                            _sensorData.Rows.Add(name, status, reading);
+                            _sensorData.Rows.Add(id, name, status, reading);
                         }
                     }
             }
-
-            return _sensorData;
         }
     }
 }
