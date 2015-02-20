@@ -101,7 +101,7 @@ namespace vApus.Monitor.Sources.IPMI {
             var username = new Parameter() { Name = "Username", DefaultValue = "admin" };
             var password = new Parameter() { Name = "Password", DefaultValue = "1234", Encrypted = true };
             var ipmi2dot0 = new Parameter() { Name = "IPMI 2.0", DefaultValue = false };
-            var alwaysReadAllSensors = new Parameter() { Name = "Always read all sensors", Description = "Faster than reading just the specified onces, which is multi-process. But can be slower if there are faulty sensors where reading times out.", DefaultValue = false };
+            var alwaysReadAllSensors = new Parameter() { Name = "Always read all sensors", Description = "Can be baster than reading just the specified onces, which is multi-process. Can be slower if there are faulty sensors where reading times out. Try both.", DefaultValue = false };
             base._parameters = new Parameter[] { hostNameOrIPAddress, username, password, ipmi2dot0, alwaysReadAllSensors };
         }
 
