@@ -52,9 +52,9 @@ namespace vApus.Monitor.Sources.Generic.Agent {
             get {
                 if (base._config == null)
                     try {
-                        base._config = WriteRead("config");
+                        base._config = WriteRead("config").Replace("\r", "").Replace("\n", Environment.NewLine);
                     } catch (Exception ex) {
-                        base._config = "<config>Not available</config>";
+                        base._config = "Not available";
                         Loggers.Log(Level.Error, "Failed getting the config.", ex);
                     }
                 return base._config;
