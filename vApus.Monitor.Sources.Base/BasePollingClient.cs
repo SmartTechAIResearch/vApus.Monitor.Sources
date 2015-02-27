@@ -17,7 +17,7 @@ namespace vApus.Monitor.Sources.Base {
     /// </summary>
     public abstract class BasePollingClient : BaseClient {
         //For functionality testing.
-        private AutoResetEvent _sleepWaitHandle = new AutoResetEvent(false);
+        protected AutoResetEvent _sleepWaitHandle = new AutoResetEvent(false);
 
         /// <summary>
         /// Store what you received from the polled source in here.

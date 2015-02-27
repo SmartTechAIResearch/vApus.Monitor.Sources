@@ -6,11 +6,13 @@
  *    Dieter Vandroemme
  */
 
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
+using System.Linq;
+using System.Threading;
 using vApus.Monitor.Sources.Base;
-using RandomUtils;
 
 namespace vApus.Monitor.Sources.IPMI {
     public class IPMIClient : BasePollingClient {
@@ -22,7 +24,7 @@ namespace vApus.Monitor.Sources.IPMI {
             get { return GetParameter("Host Name or IP address").Value as string; }
         }
 
-        public override bool IsConnected { get { return _ipmiHelper != null && _ipmiHelper.IsReachable; } }
+        public override bool IsConnected { get { return _ipmiHelper != null; } }
 
         public override int RefreshCountersInterval { get { return 20000; } }
 
@@ -36,10 +38,11 @@ namespace vApus.Monitor.Sources.IPMI {
 
                     var entity = new Entity(HostNameOrIPAddress, true);
 
-                    foreach (DataRow row in sensorData.Rows) {
-                        string sensor = string.Format("{0} ({1})", row["Sensor"], row["ID"]);
-                        entity.GetSubs().Add(new CounterInfo(sensor));
-                    }
+                    foreach (DataRow row in sensorData.Rows)
+                        if ((double)row["Reading"] != -1d) {
+                            string sensor = string.Format("{0} ({1})", row["Sensor"], row["ID"]);
+                            entity.GetSubs().Add(new CounterInfo(sensor));
+                        }
 
                     base._wdyh.Add(entity);
 
@@ -57,38 +60,42 @@ namespace vApus.Monitor.Sources.IPMI {
                 _wiwSensorIDs = new string[0];
 
                 //Make ranges of sensor ids to be passed to ipmiutil. Sadly enough it does not accept lists, so multiple processes are needed reagardles.
-                if (!_alwaysReadAllSensors && _wiw.GetCounterInfosAtLastLevel().Count != _wdyh.GetCounterInfosAtLastLevel().Count) {
-                    var l = new List<int>();
+                if (!_alwaysReadAllSensors) {
+                    var sortedSet = new SortedSet<int>();
                     foreach (CounterInfo counterInfo in _wiw.GetCounterInfosAtLastLevel()) {
                         string sensor = counterInfo.GetName();
                         string[] s = sensor.Split('(');
                         string sensorId = s[s.Length - 1];
                         sensorId = sensorId.Substring(0, sensorId.Length - 1);
-                        l.Add(int.Parse(sensorId, NumberStyles.HexNumber));
+                        sortedSet.Add(int.Parse(sensorId, NumberStyles.HexNumber));
                     }
 
-                    if (l.Count != 0) {
-                        l.Sort();
+                    int[] arr = new int[sortedSet.Count];
+                    sortedSet.CopyTo(arr);
+                    if (arr.Length != 0) {
                         var wiwSensorIdRanges = new Dictionary<int, int>(); //Start, count
 
-                        int lowerBoundary = l[0];
-                        int upperBoundary = l[l.Count - 1] + 1;
+                        int lowerBoundary = arr[0];
+                        int upperBoundary = arr[arr.Length - 1] + 1;
 
                         int i = lowerBoundary;
                         do {
                             int startRange = i;
                             int endRange = i;
-                            while (l.Contains(++i)) endRange = i;
+                            while (arr.Contains(++i)) endRange = i;
 
                             wiwSensorIdRanges.Add(startRange, endRange);
 
-                            while (i < upperBoundary && !l.Contains(++i)) ;
+                            while (i < upperBoundary && !arr.Contains(++i)) ;
                         } while (i < upperBoundary);
 
                         var wiwSensorIDs = new HashSet<string>();
                         _wiwSensorIDs = new string[wiwSensorIdRanges.Count];
                         foreach (var kvp in wiwSensorIdRanges)
-                            wiwSensorIDs.Add(string.Format("{0:X}-{1:X}", kvp.Key, kvp.Value));
+                            if (kvp.Key == kvp.Value)
+                                wiwSensorIDs.Add(string.Format("{0:x}", kvp.Key));
+                            else
+                                wiwSensorIDs.Add(string.Format("{0:x}-{1:x}", kvp.Key, kvp.Value));
 
                         _wiwSensorIDs = new string[wiwSensorIDs.Count];
                         wiwSensorIDs.CopyTo(_wiwSensorIDs);
@@ -101,7 +108,7 @@ namespace vApus.Monitor.Sources.IPMI {
             var username = new Parameter() { Name = "Username", DefaultValue = "admin" };
             var password = new Parameter() { Name = "Password", DefaultValue = "1234", Encrypted = true };
             var ipmi2dot0 = new Parameter() { Name = "IPMI 2.0", DefaultValue = false };
-            var alwaysReadAllSensors = new Parameter() { Name = "Always read all sensors", Description = "Can be baster than reading just the specified onces, which is multi-process. Can be slower if there are faulty sensors where reading times out. Try both.", DefaultValue = false };
+            var alwaysReadAllSensors = new Parameter() { Name = "Always read all sensors", Description = "Can be faster than reading just the specified onces, which is multi-process. Can be slower if there are faulty sensors where reading times out. Try both.", DefaultValue = false };
             base._parameters = new Parameter[] { hostNameOrIPAddress, username, password, ipmi2dot0, alwaysReadAllSensors };
         }
 
@@ -114,6 +121,12 @@ namespace vApus.Monitor.Sources.IPMI {
                 _alwaysReadAllSensors = (bool)GetParameter("Always read all sensors").Value;
 
                 _ipmiHelper = new IPMIHelper(HostNameOrIPAddress, username, password, ipmi2dot0);
+
+                if (!_ipmiHelper.IsReachable) {
+                    _ipmiHelper.Dispose();
+                    _ipmiHelper = null;
+                }
+
                 isConnected = IsConnected;
             }
             return isConnected;
@@ -156,11 +169,76 @@ namespace vApus.Monitor.Sources.IPMI {
         }
 
         public override bool Disconnect() {
-            if (IsConnected) {
+            if (_ipmiHelper != null) {
+                _ipmiHelper.Dispose();
                 _ipmiHelper = null;
+                
                 Stop();
             }
             return !IsConnected;
         }
+
+        /// <summary>
+        /// Function for the client tester.
+        /// </summary>
+        /// <param name="verboseConsoleOutput"></param>
+        /// <param name="id"></param>
+        /// <param name="parameterValues"></param>
+        public override void Test(bool verboseConsoleOutput, int id, params object[] parameterValues) {
+            base._verboseConsoleOutput = verboseConsoleOutput;
+            base._id = id;
+            try {
+                try {
+                    Console.WriteLine("Test " + base._id + " Started");
+                    if (verboseConsoleOutput) Console.WriteLine("Test " + base._id + " Setting the parameters.");
+                    if (!IsConnected && parameterValues != null) SetParameterValues(parameterValues);
+
+                    if (verboseConsoleOutput) Console.WriteLine("Test " + base._id + " Connecting to the monitor source...");
+                    Connect();
+
+                    if (!IsConnected)
+                        throw new Exception("Test " + base._id + " Failed to connect to the monitor source.");
+
+                    string config = Config;
+                    if (_verboseConsoleOutput) Console.WriteLine("Test " + base._id + " Config: " + config);
+
+                    int refreshCountersInterval = 2;
+                    if (_verboseConsoleOutput) Console.WriteLine("Test " + base._id + " RefreshCountersInterval: " + refreshCountersInterval);
+
+                    string decimalSeparator = DecimalSeparator;
+                    if (_verboseConsoleOutput) Console.WriteLine("Test " + base._id + " DecimalSeparator: " + decimalSeparator);
+
+                    WIW = WDYH;
+                    if (_verboseConsoleOutput) Console.WriteLine("Test " + base._id + " Random wiw determined: " + WIWRepresentation);
+
+                    _started = true;
+                    if (_verboseConsoleOutput) Console.WriteLine("Test " + base._id + " Reading and parsing counters 3 times...");
+
+                    _sleepWaitHandle = new AutoResetEvent(false);
+                    for (int i = 0; i != 20; i++) {
+                        ValidateCounters(PollCounters());
+                        if (_sleepWaitHandle != null)
+                            _sleepWaitHandle.WaitOne(refreshCountersInterval);
+                    }
+
+                    Stop();
+
+                    Console.WriteLine("Test " + base._id + " Finished succesfully");
+
+                } catch {
+                    throw;
+
+                } finally {
+                    try { Dispose(); } catch { throw new Exception("Failed to dispose."); }
+                }
+            } catch (Exception ex) {
+                var defaultColor = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Test " + base._id + " Failed: " + ex.Message + " " + ex.StackTrace);
+                Console.ForegroundColor = defaultColor;
+            }
+            base._verboseConsoleOutput = false;
+        }
+
     }
 }

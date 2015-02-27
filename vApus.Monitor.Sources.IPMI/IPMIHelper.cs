@@ -17,7 +17,7 @@ using System.Text;
 using System.Windows.Forms;
 
 namespace vApus.Monitor.Sources.IPMI {
-    internal class IPMIHelper {
+    internal class IPMIHelper : IDisposable {
         private Process _process;
         private string _commandText;
         private StringBuilder _output = new StringBuilder(), _error = new StringBuilder();
@@ -31,7 +31,7 @@ namespace vApus.Monitor.Sources.IPMI {
         public bool IsReachable {
             get {
                 try {
-                    DataTable sensorData = FetchIPMISensorData();
+                    DataTable sensorData = FetchIPMISensorData("1");
                     return sensorData != null && sensorData.Rows.Count != 0;
                 } catch (Exception ex) {
                     Loggers.Log(Level.Warning, "Could not reach " + HostNameOrIPAddress, ex);
@@ -137,7 +137,7 @@ namespace vApus.Monitor.Sources.IPMI {
                             string id = cells[0].Trim();
                             string name = cells[4].Trim();
                             string status = cells[5].Trim();
-                            double reading = -1f;
+                            double reading = -1d;
 
                             if (cells.Length == 7) {
                                 string[] readingArr = cells[6].Trim().Split(' ');
@@ -153,11 +153,11 @@ namespace vApus.Monitor.Sources.IPMI {
                                                 if (unparsedReading1 != 0)
                                                     reading += (unparsedReading1 / (int)(Math.Pow(10, unparsedReading1.ToString().Length)));
                                             } else {
-                                                reading = -1f;
+                                                reading = -1d;
                                             }
                                         }
                                     } else {
-                                        reading = -1f;
+                                        reading = -1d;
                                     }
                                 }
                             }
@@ -165,6 +165,13 @@ namespace vApus.Monitor.Sources.IPMI {
                         }
                     }
             }
+        }
+        
+        public void Dispose() {
+           if(_process != null)
+               try {
+                   _process.Kill();
+               } catch { }
         }
     }
 }
