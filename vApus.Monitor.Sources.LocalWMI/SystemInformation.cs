@@ -1,377 +1,192 @@
-﻿//This file comes from CodeProject (http://www.codeproject.com/KB/IP/remotesysinformation.aspx)
-//The author is N. Smith and his website is http://www.simplyneatsoftware.com/
-//This has been slighty adjusted by me, Glenn Desmadryl
+﻿/*
+ * Copyright 2015 (c) Sizing Servers Lab
+ * University College of West-Flanders, Department GKG
+ * 
+ * Author(s):
+ *    Dieter Vandroemme
+ */
 
-using Microsoft.Win32;
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.Management;
-using System.Net;
+using System.Text;
 
 namespace vApus.Monitor.Sources.LocalWMI {
     /// <summary>
     /// Summary description for SystemInformation.
     /// </summary>
     public class SystemInformation {
-        #region "Enum Types"
-        public enum DriveTypes {
-            Unknown = 0,
-            No_Root_Directory = 1,
-            Removable_Disk = 2,
-            Local_Disk = 3,
-            Network_Drive = 4,
-            Compact_Disc = 5,
-            RAM_Disk = 6
-        }
 
-        public enum Status {
-            Success = 0,
-            AuthenticateFailure = 1,
-            UnauthorizedAccess = 2,
-            RPCServicesUnavailable = 3
-        }
+        #region Fields
+        private string _computer;
+        private string _os;
+        private string _system;
+        private string _baseboard;
+        private string _bios;
+        private string _processors;
+        private string _memory;
+        private string _disks;
+        private string _nics;
         #endregion
 
-        #region "Structures"
-        public struct TimezoneInfo {
-            public String standardname;
-            public int minoffset;
-        }
-
-        public struct LogicalDrive {
-            public String name;
-            public DriveTypes drivetype;
-            public ulong size;
-            public ulong freespace;
-            public String filesystem;
-        }
-
-        public struct IPAddresses {
-            public IPAddress address;
-            public IPAddress subnet;
-        }
-
-        public struct NetworkAdapter {
-            public IPAddresses[] networkaddress;
-            public Boolean DHCPEnabled;
-            public String name;
-            public String databasePath;
-        }
-
-        public struct Processor {
-            public String name;
-            public uint speed;
-            public String architecture;
-        }
-
-        public struct OperatingSystemVersion {
-            public uint servicepackmajor;
-            public uint servicepackminor;
-            public uint major;
-            public uint minor;
-            public uint type;
-            public uint build;
-            public String description;
-        }
-        #endregion
-
-        #region "Variable declarations"
-        private NetworkAdapter[] p_adapters;
-
-        private String p_bios;
-
-        private String p_osname;
-        private String p_osmanufacturer;
-        private OperatingSystemVersion p_osversion;
-        private String p_locale;
-        private String p_windowsdirectory;
-        private ulong p_freephysicalmemory;
-        private ulong p_totalphysicalmemory;
-        private ulong p_freevirtualmemory;
-        private ulong p_totalvirtualmemory;
-        private ulong p_pagefilesize;
-        private TimezoneInfo p_timezone;
-        private String p_computername;
-
-        private String p_domain;
-        private String p_systemmanufacturer;
-        private String p_systemmodel;
-        private String p_systemtype;
-        private uint p_numberofprocessors;
-        private Processor[] p_processors;
-
-        private LogicalDrive[] p_drives;
-        #endregion
-
-        #region "Properties"
-        //All these properties will be questioned through reflection so it's traversed from topdown!
-        public LogicalDrive[] LogicalDrives {
-            get { return p_drives; }
-        }
-
-        public String Bios {
-            get { return p_bios; }
-        }
-
-        public NetworkAdapter[] Adapters {
-            get { return p_adapters; }
-        }
-
-        public String OSName {
-            get { return p_osname; }
-        }
-
-        public String OSManufacturer {
-            get { return p_osmanufacturer; }
-        }
-
-        public string OSVersion {
-            get { return p_osversion.description; }
-        }
-
-        public String Locale {
-            get { return p_locale; }
-        }
-
-        public String WindowsDirectory {
-            get { return p_windowsdirectory; }
-        }
-
-        public ulong FreePhysicalMemory {
-            get { return p_freephysicalmemory; }
-        }
-
-        public ulong TotalPhysicalMemory {
-            get { return p_totalphysicalmemory; }
-        }
-
-        public ulong FreeVirtualMemory {
-            get { return p_freevirtualmemory; }
-        }
-
-        public ulong TotalVirtualMemory {
-            get { return p_totalvirtualmemory; }
-        }
-
-        public ulong PageFileSize {
-            get { return p_pagefilesize; }
-        }
-
-        public string LocalTime {
-            get { return DateTime.Now.ToString(); }
-        }
-
-        public string Timezone {
-            get { return p_timezone.standardname; }
-        }
-
-        public String ComputerName {
-            get { return p_computername; }
-        }
-
-        public String Domain {
-            get { return p_domain; }
-        }
-
-        public String SystemManufacturer {
-            get { return p_systemmanufacturer; }
-        }
-
-        public String SystemModel {
-            get { return p_systemmodel; }
-        }
-
-        public String SystemType {
-            get { return p_systemtype; }
-        }
-
-        public uint NumberOfProcessors {
-            get { return p_numberofprocessors; }
-        }
-
-        public Processor[] Processors {
-            get { return p_processors; }
-        }
+        #region Properties
+        public string Computer { get { return _computer; } }
+        public string OS { get { return _os; } }
+        public string System { get { return _system; } }
+        public string Baseboard { get { return _baseboard; } }
+        public string Bios { get { return _bios; } }
+        public string Processors { get { return _processors; } }
+        public string Memory { get { return _memory; } }
+        public string Disks { get { return _disks; } }
+        public string NICs { get { return _nics; } }
         #endregion
 
         public SystemInformation() { }
 
-        public Status Get() {
-            return Get(Environment.MachineName);
-        }
-        public Status Get(String host) {
-            return Get(host, null, null);
+        public bool Get() {
+            try {
+                GetSystemInformation();
+            } catch {
+                return false;
+            }
+
+            return true;
         }
 
-        public Status Get(String host, String username, String password) {
-            // No blank username's allowed.
-            if (username == "") {
-                username = null;
-                password = null;
-            }
-            // Configure the connection settings.
-            ConnectionOptions options = new ConnectionOptions();
+        private ManagementScope ConnectScope(string nameSpace = "root\\cimv2") {
+            var options = new ConnectionOptions();
             options.Impersonation = ImpersonationLevel.Impersonate;
             options.EnablePrivileges = false;
-            options.Username = username; //could be in domain\user format
-            options.Password = password;
-            ManagementPath path = new ManagementPath(String.Format("\\\\{0}\\root\\cimv2", host));
-            ManagementScope scope = new ManagementScope(path, options);
+            options.Username = null;
+            options.Password = null;
+            var mpath = new ManagementPath(String.Format("\\\\{0}\\{1}", Environment.MachineName, nameSpace));
+            var scope = new ManagementScope(mpath, options);
 
-            // Try and connect to the remote (or local) machine.
-            try {
-                scope.Connect();
-            } catch (ManagementException ex) {
-                // Failed to authenticate properly.
-                Debug.WriteLine("SystemInformatton.Get: " + ex.Message);
-                return Status.AuthenticateFailure;
-            } catch (System.Runtime.InteropServices.COMException ex) {
-                // Unable to connect to the RPC service on the remote machine.
-                Debug.WriteLine("SystemInformatton.Get: " + ex.Message);
-                return Status.RPCServicesUnavailable;
-            } catch (System.UnauthorizedAccessException ex) {
-                // User not authorized.
-                Debug.WriteLine("SystemInformatton.Get: " + ex.Message);
-                return Status.UnauthorizedAccess;
-            }
+            scope.Connect();
 
-            // Populate the class.
-            GetSystemInformation(scope);
-            GetNetworkAddresses(scope);
-            GetLogicalDrives(scope);
-
-            return Status.Success;
+            return scope;
         }
 
-        string GetTimezone(int offset) {
-            int hr, min;
-            String search, sign;
+        private void GetSystemInformation() {
+            ManagementScope scope = ConnectScope();
 
-            if (offset == 0) {
-                search = "GMT";
-            } else {
-                hr = (int)Math.Abs(offset) / 60;
-                min = (int)Math.Abs(offset) % 60;
-                if (offset < 0)
-                    sign = "-";
-                else
-                    sign = "+";
-                search = String.Format("{0}{1:00}:{2:00}", sign, hr, min);
+            ManagementObjectCollection col = new ManagementObjectSearcher(scope, new ObjectQuery("Select CSName, Version, Name, BuildNumber from Win32_OperatingSystem")).Get();
+            foreach (ManagementObject mo in col) {
+                _computer = mo["CSName"].ToString().Trim();
+                _os = string.Format("{0} {1} Build {2}", mo["Name"].ToString().Split("|".ToCharArray())[0].Trim(), mo["Version"].ToString().Trim(), mo["BuildNumber"].ToString().Trim());
+                break;
             }
 
-            using (RegistryKey timeZones = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones", true)) {
-                foreach (string subKeyName in timeZones.GetSubKeyNames()) {
-                    using (RegistryKey tempKey = timeZones.OpenSubKey(subKeyName)) {
-                        string standardName;
+            col = new ManagementObjectSearcher(scope, new ObjectQuery("Select Manufacturer, Model, Domain from Win32_ComputerSystem")).Get();
+            foreach (ManagementObject mo in col) {
+                _system = mo["Manufacturer"].ToString().Trim() + " - " + mo["Model"].ToString().Trim();
+                _computer += "." + mo["Domain"].ToString().Trim();
+                break;
+            }
 
-                        if (tempKey.GetValue("Display").ToString().IndexOf(search) >= 0) {
-                            standardName = tempKey.GetValue("Display").ToString(); //used to be Std but i found that Display is a better name
-                            tempKey.Close();
-                            timeZones.Close();
-                            return standardName;
-                        }
-                    }
+            col = new ManagementObjectSearcher(scope, new ObjectQuery("Select Name from Win32_BIOS WHERE PrimaryBIOS='True'")).Get();
+            foreach (ManagementObject mo in col) {
+                _bios = mo["Name"].ToString().Trim();
+                break;
+            }
+
+            col = new ManagementObjectSearcher(scope, new ObjectQuery("Select * from Win32_BaseBoard")).Get();
+            foreach (ManagementObject mo in col) {
+                _baseboard = string.Empty;
+                if (mo["Manufacturer"] != null) _baseboard += (mo["Manufacturer"] ?? "Unknown manufacturer").ToString().Trim();
+                if (mo["Model"] != null) _baseboard += " - model: " + mo["Model"].ToString().Trim();
+                if (mo["Product"] != null) _baseboard += " - product: " + mo["Product"].ToString().Trim();
+                if (mo["PartNumber"] != null) _baseboard += " - part number: " + mo["PartNumber"].ToString().Trim();
+            }
+
+            col = new ManagementObjectSearcher(scope, new ObjectQuery("Select Name from Win32_Processor")).Get();
+            var arr = new string[col.Count];
+            int i = 0;
+            foreach (ManagementObject mo in col)
+                arr[i++] = mo["Name"].ToString().Trim();
+            _processors = Combine(arr);
+
+            col = new ManagementObjectSearcher(scope, new ObjectQuery("Select Capacity, Manufacturer, Model, PartNumber, SerialNumber, Speed from Win32_PhysicalMemory")).Get();
+            arr = new string[col.Count];
+            i = 0;
+            foreach (ManagementObject mo in col) {
+                string ram = ulong.Parse(mo["Capacity"].ToString().Trim()) / (1024 * 1024 * 1024) + " GB";
+                if (mo["Manufacturer"] != null) ram += " - manufacturer: " + mo["Manufacturer"].ToString().Trim();
+                if (mo["Model"] != null) ram += " - model: " + mo["Model"].ToString().Trim();
+                if (mo["PartNumber"] != null) ram += " - part number: " + mo["PartNumber"].ToString().Trim();
+
+                if (mo["Manufacturer"] == null && mo["Model"] == null)
+                    ram += " - unknown manufacturer and model";
+
+                ram += " (" + (mo["Speed"] ?? "?").ToString().Trim() + " Mhz)";
+
+                arr[i++] = ram;
+            }
+            _memory = Combine(arr);
+
+            col = new ManagementObjectSearcher(scope, new ObjectQuery("Select Size, Model from Win32_DiskDrive where InterfaceType != 'USB'")).Get();
+            arr = new string[col.Count];
+            i = 0;
+            foreach (ManagementObject mo in col)
+                arr[i++] = string.Format("{0} GB - {1}", ulong.Parse(mo["Size"].ToString().Trim()) / (1024 * 1024 * 1024), mo["Model"].ToString().Trim());
+
+            _disks = Combine(arr);
+
+            scope = ConnectScope("root\\StandardCimv2");
+
+            col = new ManagementObjectSearcher(scope, new ObjectQuery("SELECT Name, DriverDescription, MediaConnectState FROM MSFT_NetAdapter WHERE HardwareInterface = 'True' AND EndpointInterface = 'False'")).Get();
+            var d = new SortedDictionary<uint, SortedSet<string>>();
+            foreach (ManagementObject mo in col) {
+                string s = mo["Name"] + " - " + mo["DriverDescription"].ToString().Trim();
+                uint mediaConnectState = uint.Parse(mo["MediaConnectState"].ToString().Trim());
+
+                uint sortedState = mediaConnectState;
+                if (mediaConnectState == 0) {
+                    s += " (unknown status)";
+                    sortedState = 3;
+                } else if (mediaConnectState == 1) {
+                    s += " (connected)";
+                } else if (mediaConnectState == 2) {
+                    s += " (disconnected)";
                 }
-            }
 
-            return "<unknown>";
+                if (!d.ContainsKey(sortedState)) d.Add(sortedState, new SortedSet<string>());
+                d[sortedState].Add(s);
+            }
+            var l = new List<string>(col.Count);
+            for (uint j = 1; j != 4; j++)
+                if (d.ContainsKey(j))
+                    l.AddRange(d[j]);
+
+            _nics = Combine(l.ToArray());
         }
 
-        private void GetLogicalDrives(ManagementScope scope) {
-            ManagementObjectSearcher moSearch = new ManagementObjectSearcher(scope, new ObjectQuery("Select Name, DriveType, Size, FreeSpace, FileSystem from Win32_LogicalDisk Where DriveType = 3 Or DriveType = 6"));
-            ManagementObjectCollection moReturn = moSearch.Get();
+        /// <summary>
+        /// Duplicates are ommitted. A multiplier is added in that case.
+        /// </summary>
+        /// <param name="arr"></param>
+        /// <returns></returns>
+        private string Combine(string[] arr) {
+            if (arr.Length == 0)
+                return string.Empty;
 
-            p_drives = new LogicalDrive[moReturn.Count];
-            int i = 0;
-            foreach (ManagementObject mo in moReturn) {
-                p_drives[i].drivetype = (DriveTypes)int.Parse(mo["DriveType"].ToString());
-                p_drives[i].filesystem = mo["FileSystem"].ToString();
-                p_drives[i].freespace = ulong.Parse(mo["FreeSpace"].ToString());
-                p_drives[i].size = ulong.Parse(mo["Size"].ToString());
-                p_drives[i].name = mo["Name"].ToString();
-                i++;
-            }
-        }
-
-        private void GetSystemInformation(ManagementScope scope) {
-            // Only get the first BIOS in the list. Usually this is all there is.
-            foreach (ManagementObject mo in new ManagementClass(scope, new ManagementPath("Win32_BIOS"), null).GetInstances()) {
-                p_bios = mo["Version"].ToString();
-                break;
+            var d = new Dictionary<string, int>();
+            var sb = new StringBuilder();
+            foreach (string s in arr) {
+                if (d.ContainsKey(s)) ++d[s];
+                else d.Add(s, 1);
             }
 
-            foreach (ManagementObject mo in new ManagementClass(scope, new ManagementPath("Win32_OperatingSystem"), null).GetInstances()) {
-                p_osversion.build = uint.Parse(mo["BuildNumber"].ToString());
-                p_osversion.description = String.Format("{0} {1} Build {2}", mo["Version"], mo["CSDVersion"], mo["BuildNumber"]);
-                p_osversion.servicepackmajor = uint.Parse(mo["ServicePackMajorVersion"].ToString());
-                p_osversion.servicepackminor = uint.Parse(mo["ServicePackMinorVersion"].ToString());
-                p_osversion.type = uint.Parse(mo["OSType"].ToString());
-                // Get the major and minor version numbers.
-                String[] numbers = mo["Version"].ToString().Split(".".ToCharArray());
-                p_osversion.major = uint.Parse(numbers[0]);
-                p_osversion.minor = uint.Parse(numbers[1]);
-                // Get the rest of the fields.
-                p_osname = mo["Name"].ToString().Split("|".ToCharArray())[0];
-                p_osmanufacturer = mo["Manufacturer"].ToString();
-                p_locale = mo["Locale"].ToString();
-                p_windowsdirectory = mo["WindowsDirectory"].ToString();
-                p_freevirtualmemory = ulong.Parse(mo["FreeVirtualMemory"].ToString());
-                p_totalvirtualmemory = ulong.Parse(mo["TotalVirtualMemorySize"].ToString());
-                p_freephysicalmemory = ulong.Parse(mo["FreePhysicalMemory"].ToString());
-                p_totalphysicalmemory = ulong.Parse(mo["TotalVisibleMemorySize"].ToString());
-                p_pagefilesize = ulong.Parse(mo["SizeStoredInPagingFiles"].ToString());
-                p_computername = mo["CSName"].ToString();
-                // Get the information related to the timezone.
-                p_timezone.minoffset = int.Parse(mo["CurrentTimeZone"].ToString());
-                p_timezone.standardname = GetTimezone(p_timezone.minoffset);
-                break;
-            }
-
-            foreach (ManagementObject mo in new ManagementClass(scope, new ManagementPath("Win32_ComputerSystem"), null).GetInstances()) {
-                p_systemmanufacturer = mo["Manufacturer"].ToString();
-                p_systemmodel = mo["Model"].ToString();
-                p_systemtype = mo["SystemType"].ToString();
-                p_domain = mo["Domain"].ToString();
-                p_numberofprocessors = uint.Parse(mo["NumberOfProcessors"].ToString());
-                break;
-            }
-
-            ManagementObjectSearcher moSearch = new ManagementObjectSearcher(scope, new ObjectQuery("Select Name, CurrentClockSpeed, Architecture from Win32_Processor"));
-            ManagementObjectCollection moReturn = moSearch.Get();
-
-            p_processors = new Processor[moReturn.Count];
-            int i = 0;
-            foreach (ManagementObject mo in moReturn) {
-                p_processors[i].name = mo["Name"].ToString().Trim();
-                p_processors[i].architecture = mo["Architecture"].ToString();
-                p_processors[i].speed = uint.Parse(mo["CurrentClockSpeed"].ToString());
-                i++;
-            }
-        }
-
-        private void GetNetworkAddresses(ManagementScope scope) {
-            ManagementObjectCollection adapters;
-            ManagementObjectSearcher search;
-
-            search = new ManagementObjectSearcher(scope, new ObjectQuery("Select Description, DHCPEnabled, IPAddress, DatabasePath, IPSubnet from Win32_NetworkAdapterConfiguration Where IPEnabled = True"));
-            adapters = search.Get();
-
-            p_adapters = new NetworkAdapter[adapters.Count];
-
-            int i = 0;
-            foreach (ManagementObject adapter in adapters) {
-                p_adapters[i].name = adapter["Description"].ToString();
-                p_adapters[i].DHCPEnabled = Boolean.Parse(adapter["DHCPEnabled"].ToString());
-                p_adapters[i].databasePath = adapter["DatabasePath"].ToString();
-
-                if (adapter["IPAddress"] != null) {
-                    p_adapters[i].networkaddress = new IPAddresses[((string[])adapter["IPAddress"]).Length];
-                    for (int j = 0; j < ((string[])adapter["IPAddress"]).Length; j++) {
-                        p_adapters[i].networkaddress[j].address = IPAddress.Parse(((string[])adapter.Properties["IPAddress"].Value)[j]);
-                        p_adapters[i].networkaddress[j].subnet = IPAddress.Parse(((string[])adapter.Properties["IPSubnet"].Value)[j]);
-                    }
+            foreach (var kvp in d) {
+                if (kvp.Value != 1) {
+                    sb.Append(kvp.Value);
+                    sb.Append(" x ");
                 }
+
+                sb.AppendLine(kvp.Key);
             }
+
+            return sb.ToString().Trim();
         }
 
     }

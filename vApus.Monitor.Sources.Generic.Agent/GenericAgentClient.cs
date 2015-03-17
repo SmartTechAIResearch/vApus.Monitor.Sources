@@ -6,11 +6,11 @@
  *    Dieter Vandroemme
  */
 using Newtonsoft.Json;
+using RandomUtils;
 using RandomUtils.Log;
 using System;
 using System.Threading;
 using vApus.Monitor.Sources.Base;
-using vApus.Monitor.Sources.Util;
 
 namespace vApus.Monitor.Sources.Generic.Agent {
     /// <summary>
@@ -54,7 +54,7 @@ namespace vApus.Monitor.Sources.Generic.Agent {
                     try {
                         base._config = WriteRead("config");
                     } catch (Exception ex) {
-                        base._config = "<config>Not available</config>";
+                        base._config = "Not available";
                         Loggers.Log(Level.Error, "Failed getting the config.", ex);
                     }
                 return base._config;
@@ -106,6 +106,10 @@ namespace vApus.Monitor.Sources.Generic.Agent {
                 if (IsConnected && !base._started) {
                     //Reset the connecion to be sure.
                     _socket.Close();
+
+                    if (_wiw == null || _wiw.Count == 0)
+                        throw new Exception("You did not set the counters you want to monitor.");
+
                     Connect();
                     WriteRead(WIWRepresentation);
 

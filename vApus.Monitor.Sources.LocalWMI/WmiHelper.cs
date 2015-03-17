@@ -9,12 +9,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Xml;
 using vApus.Monitor.Sources.Base;
 
 namespace vApus.Monitor.Sources.LocalWMI {
@@ -28,51 +25,24 @@ namespace vApus.Monitor.Sources.LocalWMI {
             var sb = new StringBuilder();
 
             var systemInformation = new SystemInformation();
-            if (systemInformation.Get() != SystemInformation.Status.Success)
+            if (!systemInformation.Get())
                 throw new Exception("Failed to get the hardware info.");
 
-            using (var writer = XmlWriter.Create(sb, new XmlWriterSettings())) {
-                writer.WriteStartElement("List");
+            // get all public instance properties
+            PropertyInfo[] propertyInfos = typeof(SystemInformation).GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
-                // get all public instance properties
-                PropertyInfo[] propertyInfos = typeof(SystemInformation).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-
-                foreach (PropertyInfo propInfo in propertyInfos)
-                    RecursiveReflectionReader(writer, propInfo.Name, propInfo.GetValue(systemInformation, null));
-
-
-                writer.WriteEndElement();
-                writer.Flush();
+            foreach (PropertyInfo propInfo in propertyInfos) {
+                sb.AppendLine(propInfo.Name);
+                string value = propInfo.GetValue(systemInformation, null).ToString();
+                foreach (string line in value.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)) {
+                    sb.Append("  ");
+                    sb.AppendLine(line);
+                }
+                sb.AppendLine();
             }
-
 
             Thread.CurrentThread.CurrentCulture = prevCulture;
             return sb.ToString();
-        }
-        private void RecursiveReflectionReader(XmlWriter writer, string name, object obj) {
-            writer.WriteStartElement(name);
-
-            if (obj is Array) {
-                foreach (object objInArray in (obj as Array)) {
-                    // get all public instance properties
-                    FieldInfo[] fieldInfos = objInArray.GetType().GetFields();
-
-                    //makes a new element with the name 
-                    writer.WriteStartElement(objInArray.GetType().Name);
-
-                    foreach (FieldInfo propInfo in fieldInfos)
-                        RecursiveReflectionReader(writer, propInfo.Name, propInfo.GetValue(objInArray));
-
-                    writer.WriteEndElement();
-
-                }
-            } else {
-                try { writer.WriteValue(obj.ToString()); } catch {
-                    //We do not care.
-                }
-            }
-
-            writer.WriteEndElement();
         }
 
         public Entities GetWDYH() {
@@ -96,7 +66,7 @@ namespace vApus.Monitor.Sources.LocalWMI {
                             //Cleanup invalid counter
                             if (counter.CounterName.Equals("No name", StringComparison.InvariantCultureIgnoreCase))
                                 continue;
-                            //try { counter.NextValue(); } catch { continue; } This check takes too long, not done for local WMI. Still in place in the WMI agent.
+                            //try { counter.NextValue(); } catch { continue; } Too slow
 
                             string counterInfoName = category.CategoryName + "." + counter.CounterName;
                             var counterInfo = new CounterInfo(counterInfoName);
@@ -117,7 +87,7 @@ namespace vApus.Monitor.Sources.LocalWMI {
                                 //Cleanup invalid counter
                                 if (counter.CounterName.Equals("No name", StringComparison.InvariantCultureIgnoreCase))
                                     continue;
-                                //try { counter.NextValue(); } catch { continue; } This check takes too long, not done for local WMI. Still in place in the WMI agent.
+                                //try { counter.NextValue(); } catch { continue; } Too slow
 
                                 string counterInfoName = category.CategoryName + "." + counter.CounterName;
                                 CounterInfo counterInfo = entity.GetSubs().Find(item => item.GetName() == counterInfoName);

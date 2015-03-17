@@ -160,9 +160,11 @@ namespace vApus.Monitor.Sources.Base {
         /// <param name="counters"></param>
         protected void InvokeOnMonitor(Entities counters) {
             if (OnMonitor != null)
-                _backgroundWorkQueue.EnqueueWorkItem(new Action<Entities>(o => {
-                    OnMonitor(this, new OnMonitorEventArgs(o));
-                }), counters);
+                foreach (EventHandler<OnMonitorEventArgs> del in OnMonitor.GetInvocationList())
+                    del.BeginInvoke(this, new OnMonitorEventArgs(counters), null, null);
+                //_backgroundWorkQueue.EnqueueWorkItem(new Action<Entities>(o => {
+                //    OnMonitor(this, new OnMonitorEventArgs(o));
+                //}), counters);
         }
         /// <summary>
         /// Use the bool _started to determine if applicable.

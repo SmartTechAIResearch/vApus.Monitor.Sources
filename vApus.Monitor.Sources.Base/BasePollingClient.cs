@@ -17,7 +17,7 @@ namespace vApus.Monitor.Sources.Base {
     /// </summary>
     public abstract class BasePollingClient : BaseClient {
         //For functionality testing.
-        private AutoResetEvent _sleepWaitHandle = new AutoResetEvent(false);
+        protected AutoResetEvent _sleepWaitHandle = new AutoResetEvent(false);
 
         /// <summary>
         /// Store what you received from the polled source in here.
@@ -37,6 +37,9 @@ namespace vApus.Monitor.Sources.Base {
         public override bool Start() {
             try {
                 if (IsConnected && !base._started) {
+                    if (_wiw == null || _wiw.Count == 0)
+                        throw new Exception("You did not set the counters you want to monitor.");
+
                     base._started = true;
                     _timer = new Multimedia.Timer() { Mode = Multimedia.TimerMode.Periodic, Period = RefreshCountersInterval };
                     _timer.Tick += _timer_Tick;
