@@ -166,6 +166,7 @@ namespace vApus.Monitor.Sources.Hotbox.Agent {
                     if (!IsConnected)
                         throw new Exception("Test " + base._id + " Failed to connect to the monitor source.");
 
+                    //string agentName = AgentName;
                     //string agentVersion = AgentVersion;
                     //string agentCopyright = AgentCopyright;
                     string config = Config;
