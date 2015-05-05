@@ -18,10 +18,18 @@ namespace vApus.Monitor.Sources.Generic.Agent {
     /// Can communicate with every agent that uses the base java packages.
     /// </summary>
     public class GenericAgentClient : BaseSocketClient<string> {
-        private string _agentVersion, _agentCopyright;
+        private string _agentName, _agentVersion, _agentCopyright;
         private int _refreshCountersInterval;
 
         private Thread _readMonitorCountersThread;
+
+        public string AgentName {
+            get {
+                if (_agentName == null)
+                    _agentName = WriteRead("name");
+                return _agentName;
+            }
+        }
 
         /// <summary>
         /// Example: 0.1
@@ -121,6 +129,7 @@ namespace vApus.Monitor.Sources.Generic.Agent {
                             try {
                                 base.InvokeOnMonitor(ParseCounters(Read("[{\"name\":\"entity\",\"isAvailable\":true,\"subs\":[{\"name\":\"header\",\"subs\":...")));
                             }catch(JsonReaderException jex){
+                                base.InvokeOnMonitor(null);
                                 Loggers.Log(Level.Error, "Communication Error. Dropping the counter.", jex);
                             } catch (Exception ex) {
                                 StopOnCommunicationError();
@@ -219,6 +228,7 @@ namespace vApus.Monitor.Sources.Generic.Agent {
                     if (!IsConnected)
                         throw new Exception("Test " + base._id + " Failed to connect to the monitor source.");
 
+                    string agentName = AgentName;
                     string agentVersion = AgentVersion;
                     string agentCopyright = AgentCopyright;
                     string config = Config;
