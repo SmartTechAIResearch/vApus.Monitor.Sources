@@ -37,7 +37,7 @@ namespace vApus.Monitor.Sources.Base {
         /// Returns the seconds since epoch (1970/1/1).
         /// </summary>
         /// <returns></returns>
-        public double GetTimestamp() { return timestamp; }
+        public long GetTimestamp() { return timestamp; }
 
         /// <summary>
         /// Initiates the internal List if it is null.
