@@ -40,7 +40,7 @@ namespace vApus.Monitor.Sources.Hotbox.Agent {
                     foreach (string sensor in sensors.sensors)
                         entity.GetSubs().Add(new CounterInfo(sensor));
 
-                    entities.Add(entity);
+                    entities.GetSubs().Add(entity);
                     base._wdyh = entities;
                 }
                 return base._wdyh;

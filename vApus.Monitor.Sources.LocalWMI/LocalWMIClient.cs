@@ -57,6 +57,7 @@ namespace vApus.Monitor.Sources.LocalWMI {
 
             _wmiHelper.RefreshValues(base._wiwWithCounters);
 
+            base._wiwWithCounters.SetTimestamp();
             return base._wiwWithCounters;
         }
 

@@ -59,7 +59,7 @@ namespace vApus.Monitor.Sources.Elasticsearch
                 Entities entities = new Entities();
 
                 foreach (var x in GetJSONObject("/_nodes/stats")["nodes"])
-                    entities.Add(new Entity(x.Value["name"].ToString() + " (" + x.Key + ")", true));
+                    entities.GetSubs().Add(new Entity(x.Value["name"].ToString() + " (" + x.Key + ")", true));
                 //    entities.Add(new Entity(x.Value["name"].ToString(), vApusSMT.Base.PowerState.On));
 
 
@@ -132,13 +132,13 @@ namespace vApus.Monitor.Sources.Elasticsearch
                 if (base._wdyh == null)
                 {
 
-                    Entities dic/*k hurr*/ = new Entities();
+                    Entities dic = new Entities();
 
 
-                    foreach (Entity e in Entities)
+                    foreach (Entity e in Entities.GetSubs())
                     {
                         e.subs = GetCountersForEntity("~* Ponyaaier 5000 *~");
-                        dic.Add(e);
+                        dic.GetSubs().Add(e);
                     }
 
                     base._wdyh = dic;
@@ -174,7 +174,7 @@ namespace vApus.Monitor.Sources.Elasticsearch
 
             JsonValue jv = GetJSONObject("_nodes/stats")["nodes"];
 
-            foreach (Entity e in base._wiwWithCounters)
+            foreach (Entity e in base._wiwWithCounters.GetSubs())
             {
                 var stats = jv[e.GetName().Substring(e.GetName().IndexOf('(') - +2).Replace(")", "").Replace("(", "").Replace("\"", "").Trim()];
                 var indices = stats["indices"];
@@ -293,6 +293,7 @@ namespace vApus.Monitor.Sources.Elasticsearch
                 }
             }
 
+            base._wiwWithCounters.SetTimestamp();
             return base._wiwWithCounters;
         }
 

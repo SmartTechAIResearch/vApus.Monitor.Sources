@@ -44,7 +44,7 @@ namespace vApus.Monitor.Sources.IPMI {
                             entity.GetSubs().Add(new CounterInfo(sensor));
                         }
 
-                    base._wdyh.Add(entity);
+                    base._wdyh.GetSubs().Add(entity);
 
                 }
                 return base._wdyh;
@@ -143,7 +143,7 @@ namespace vApus.Monitor.Sources.IPMI {
                 if (base._wih == null)
                     base._wih = WDYH.Clone();
 
-                Entity entity = base._wih[0];
+                Entity entity = base._wih.GetSubs()[0];
                 foreach (DataRow row in sensorData.Rows) {
                     string sensor = string.Format("{0} ({1})", row["Sensor"], row["ID"]);
                     foreach (CounterInfo info in entity.GetSubs())
@@ -155,7 +155,7 @@ namespace vApus.Monitor.Sources.IPMI {
 
                 base._wiwWithCounters.SetCounters(base._wih);
             } else {
-                Entity entity = base._wiwWithCounters[0];
+                Entity entity = base._wiwWithCounters.GetSubs()[0];
                 foreach (DataRow row in sensorData.Rows) {
                     string sensor = string.Format("{0} ({1})", row["Sensor"], row["ID"]);
                     foreach (CounterInfo info in entity.GetSubs())
@@ -165,6 +165,8 @@ namespace vApus.Monitor.Sources.IPMI {
                         }
                 }
             }
+
+            base._wiwWithCounters.SetTimestamp();
             return base._wiwWithCounters;
         }
 

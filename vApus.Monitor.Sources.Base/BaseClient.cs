@@ -211,7 +211,7 @@ namespace vApus.Monitor.Sources.Base {
                 var wiw = new Entities();
 
                 bool hasAvailableEntities = false;
-                foreach (Entity entity in wdyh)
+                foreach (Entity entity in wdyh.GetSubs())
                     if (entity.IsAvailable()) {
                         hasAvailableEntities = true;
                         break;
@@ -222,16 +222,16 @@ namespace vApus.Monitor.Sources.Base {
 
                     // Add minimum one, otherwise parsing the values can go wrong if headers are missing at the last level.
                     while (!addedOne)
-                        for (int i = 0; i != wdyh.Count; i++) {
+                        for (int i = 0; i != wdyh.GetSubs().Count; i++) {
                             //Random seed, otherwise System.currentTimeMillis() is used and I do not want to let the thread sleep.
                             var random = new Random(Guid.NewGuid().GetHashCode());
                             if (random.NextDouble() > 0.5d) {
-                                Entity entity = wdyh[i];
+                                Entity entity = wdyh.GetSubs()[i];
                                 if (entity.IsAvailable()) {
                                     addedOne = true;
 
                                     var newEntity = new Entity(entity.GetName(), entity.IsAvailable());
-                                    wiw.Add(newEntity);
+                                    wiw.GetSubs().Add(newEntity);
 
                                     ChanceCopySubs(entity, newEntity);
                                 }
@@ -298,7 +298,7 @@ namespace vApus.Monitor.Sources.Base {
 
 
             if (counters.GetDeepCount() != _wiw.GetDeepCount())
-                throw new Exception("The number of counters (" + counters.Count + ") is not equal to the number of CounterInfos (" + _wiw.Count + ").");
+                throw new Exception("The number of counters (" + counters.GetSubs().Count + ") is not equal to the number of CounterInfos (" + _wiw.GetSubs().Count + ").");
 
             var parsedCounters = new List<string>();
 

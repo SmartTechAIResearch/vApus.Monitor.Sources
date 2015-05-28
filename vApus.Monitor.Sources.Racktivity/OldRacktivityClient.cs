@@ -33,7 +33,7 @@ namespace vApus.Monitor.Sources.Racktivity {
                         entity.GetSubs().Add(new CounterInfo("Wattage (Watt)"));
                         entity.GetSubs().Add(new CounterInfo("Current (A)"));
                         entity.GetSubs().Add(new CounterInfo("Power Factor (%)"));
-                        base._wdyh.Add(entity);
+                        base._wdyh.GetSubs().Add(entity);
                     }
                 }
                 return base._wdyh;
@@ -63,7 +63,7 @@ namespace vApus.Monitor.Sources.Racktivity {
                 base._wih = WDYH.Clone();
 
             for (int i = 0; i != 8; i++) {
-                var entity = base._wih[i];
+                var entity = base._wih.GetSubs()[i];
                 entity.GetSubs()[0].SetCounter(counters.Available[i]);
                 entity.GetSubs()[1].SetCounter(counters.Wattage[i]);
                 entity.GetSubs()[2].SetCounter(counters.Current[i]);
@@ -74,6 +74,7 @@ namespace vApus.Monitor.Sources.Racktivity {
                 base._wiwWithCounters = base._wiw.Clone();
 
             base._wiwWithCounters.SetCounters(base._wih);
+            base._wiwWithCounters.SetTimestamp();
 
             return base._wiwWithCounters;
         }
