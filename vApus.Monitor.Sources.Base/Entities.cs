@@ -28,13 +28,13 @@ namespace vApus.Monitor.Sources.Base {
         public List<Entity> subs { get; set; }
 
         /// <summary>
-        /// Do not forget to call this. Stores seconds since epoch.
+        /// Do not forget to call this. Stores milliseconds since epoch (utc).
         /// </summary>
         public void SetTimestamp() {
-            timestamp = (long)(DateTime.Now.ToUniversalTime() - _epoch).TotalSeconds;
+            timestamp = (long)(DateTime.UtcNow - _epoch).TotalMilliseconds;
         }
         /// <summary>
-        /// Returns the seconds since epoch (1970/1/1).
+        /// Returns the milliseconds since epoch (1970/1/1).
         /// </summary>
         /// <returns></returns>
         public long GetTimestamp() { return timestamp; }
