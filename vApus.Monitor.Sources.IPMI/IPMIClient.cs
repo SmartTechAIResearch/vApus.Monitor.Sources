@@ -217,7 +217,7 @@ namespace vApus.Monitor.Sources.IPMI {
                     if (_verboseConsoleOutput) Console.WriteLine("Test " + base._id + " Reading and parsing counters 3 times...");
 
                     _sleepWaitHandle = new AutoResetEvent(false);
-                    for (int i = 0; i != 20; i++) {
+                    for (int i = 0; i != 3; i++) {
                         ValidateCounters(PollCounters());
                         if (_sleepWaitHandle != null)
                             _sleepWaitHandle.WaitOne(refreshCountersInterval);

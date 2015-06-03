@@ -31,8 +31,12 @@ namespace vApus.Monitor.Sources.IPMI {
         public bool IsReachable {
             get {
                 try {
-                    DataTable sensorData = FetchIPMISensorData("1");
-                    return sensorData != null && sensorData.Rows.Count != 0;
+                    int sensorId = 0;
+                    while (++sensorId != 100) {
+                        DataTable sensorData = FetchIPMISensorData(sensorId.ToString());
+                        if (sensorData == null) return false;
+                        if (sensorData.Rows.Count != 0) return true;
+                    }
                 } catch (Exception ex) {
                     Loggers.Log(Level.Warning, "Could not reach " + HostNameOrIPAddress, ex);
                 }
@@ -91,9 +95,9 @@ namespace vApus.Monitor.Sources.IPMI {
             _sensorData.Rows.Clear();
 
             string output = null;
-                        
+
             if (sensorIds.Length == 0) {
-                _process.StartInfo.Arguments = _commandText; 
+                _process.StartInfo.Arguments = _commandText;
                 output = GetOutput();
             } else {
                 var sb = new StringBuilder();
@@ -166,12 +170,12 @@ namespace vApus.Monitor.Sources.IPMI {
                     }
             }
         }
-        
+
         public void Dispose() {
-           if(_process != null)
-               try {
-                   _process.Kill();
-               } catch { }
+            if (_process != null)
+                try {
+                    _process.Kill();
+                } catch { }
         }
     }
 }
