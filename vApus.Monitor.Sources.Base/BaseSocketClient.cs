@@ -7,6 +7,7 @@
  */
 using RandomUtils.Log;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -73,17 +74,19 @@ namespace vApus.Monitor.Sources.Base {
                 string hostNameOrIP = GetParameter("Host Name or IP address").Value as string;
                 if (hostNameOrIP.Trim().Length == 0) return false;
 
-                IPAddress[] ipAddresses = null;
+                List<IPAddress> ipAddresses = null;
 
                 try {
-                    ipAddresses = Dns.GetHostEntry(hostNameOrIP).AddressList;
-                    if (ipAddresses.Length == 0) throw new Exception("(Reverse) lookup failed.");
+                    ipAddresses = new List<IPAddress>(Dns.GetHostEntry(hostNameOrIP).AddressList);
+                    if (ipAddresses.Count == 0) throw new Exception("(Reverse) lookup failed.");
                 } catch {
                     //If the entry could not be resolved (no dns).
-                    IPAddress ipAddress;
-                    if (IPAddress.TryParse(hostNameOrIP, out ipAddress))
-                        ipAddresses = new IPAddress[] { ipAddress };
+                    ipAddresses = new List<IPAddress>();
                 }
+
+                IPAddress originalIpAddress; //If the entry could not be resolved (no dns).
+                if (IPAddress.TryParse(hostNameOrIP, out originalIpAddress))
+                    ipAddresses.Add(originalIpAddress);
 
                 if (ipAddresses != null) {
                     int port = (int)GetParameter("Port").Value;
