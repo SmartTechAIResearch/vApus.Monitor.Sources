@@ -88,26 +88,24 @@ namespace vApus.Monitor.Sources.Base {
                 if (IPAddress.TryParse(hostNameOrIP, out originalIpAddress))
                     ipAddresses.Add(originalIpAddress);
 
-                if (ipAddresses != null) {
-                    int port = (int)GetParameter("Port").Value;
+                int port = (int)GetParameter("Port").Value;
 
-                    foreach (IPAddress ipAddress in ipAddresses) {
-                        try {
-                            System.Net.Sockets.Socket socket = new System.Net.Sockets.Socket(ipAddress.AddressFamily, _socketType, _protocolType);
-                            socket.ReceiveBufferSize = socket.SendBufferSize = _bufferSize;
-                            socket.ReceiveTimeout = socket.SendTimeout = 60000;
+                foreach (IPAddress ipAddress in ipAddresses) {
+                    try {
+                        System.Net.Sockets.Socket socket = new System.Net.Sockets.Socket(ipAddress.AddressFamily, _socketType, _protocolType);
+                        socket.ReceiveBufferSize = socket.SendBufferSize = _bufferSize;
+                        socket.ReceiveTimeout = socket.SendTimeout = 60000;
 
-                            _connectWaitHandle.Reset();
-                            socket.BeginConnect(ipAddress, port, ConnectCallback, socket);
-                            _connectWaitHandle.WaitOne(CONNECTTIMEOUT);
+                        _connectWaitHandle.Reset();
+                        socket.BeginConnect(ipAddress, port, ConnectCallback, socket);
+                        _connectWaitHandle.WaitOne(CONNECTTIMEOUT);
 
-                            if (socket.Connected) {
-                                _socket = socket;
-                                break;
-                            }
-                        } catch (Exception ex) {
-                            Loggers.Log(Level.Info, "Failed to connect the socket for ip address: " + ipAddress.ToString(), ex);
+                        if (socket.Connected) {
+                            _socket = socket;
+                            break;
                         }
+                    } catch (Exception ex) {
+                        Loggers.Log(Level.Info, "Failed to connect the socket for ip address: " + ipAddress.ToString(), ex);
                     }
                 }
             }
