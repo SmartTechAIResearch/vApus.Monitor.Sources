@@ -111,10 +111,10 @@ namespace vApus.Monitor.Sources.ESXi {
 
                     Host host = _esxiHelper.Host;
 
-                    base._wdyh.Add(MakeEntity(host));
+                    base._wdyh.GetSubs().Add(MakeEntity(host));
                     if (host.VMs != null)
                         foreach (VM vm in host.VMs)
-                            base._wdyh.Add(MakeEntity(vm));
+                            base._wdyh.GetSubs().Add(MakeEntity(vm));
                 }
                 return base._wdyh;
             }
@@ -185,16 +185,17 @@ namespace vApus.Monitor.Sources.ESXi {
 
             Host host = _esxiHelper.Host;
 
-            base._wih.Add(MakeEntity(host));
+            base._wih.GetSubs().Add(MakeEntity(host));
             if (host.VMs != null)
                 foreach (VM vm in host.VMs)
-                    base._wih.Add(MakeEntity(vm));
+                    base._wih.GetSubs().Add(MakeEntity(vm));
 
             if (base._wiwWithCounters == null)
                 base._wiwWithCounters = base._wiw.Clone();
 
             base._wiwWithCounters.SetCounters(base._wih);
 
+            base._wiwWithCounters.SetTimestamp();
             return base._wiwWithCounters;
         }
 

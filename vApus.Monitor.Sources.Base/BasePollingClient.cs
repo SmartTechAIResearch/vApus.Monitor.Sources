@@ -37,7 +37,7 @@ namespace vApus.Monitor.Sources.Base {
         public override bool Start() {
             try {
                 if (IsConnected && !base._started) {
-                    if (_wiw == null || _wiw.Count == 0)
+                    if (_wiw == null || _wiw.GetSubs().Count == 0)
                         throw new Exception("You did not set the counters you want to monitor.");
 
                     base._started = true;

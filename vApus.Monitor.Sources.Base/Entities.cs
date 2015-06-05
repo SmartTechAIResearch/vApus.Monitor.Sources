@@ -14,7 +14,44 @@ namespace vApus.Monitor.Sources.Base {
     /// Holds all entities with their counter infos.
     /// </summary>
     [Serializable]
-    public class Entities : List<Entity> {
+    public class Entities {
+        private readonly DateTime _epoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+
+        /// <summary>
+        /// For serialization only; use the appropriate get and or set function.
+        /// </summary>
+        public long timestamp { get; set; }
+
+        /// <summary>
+        /// For serialization only; use the appropriate get and or set function.
+        /// </summary>
+        public List<Entity> subs { get; set; }
+
+        /// <summary>
+        /// Do not forget to call this. Stores milliseconds since epoch (utc).
+        /// </summary>
+        public void SetTimestamp() {
+            timestamp = (long)(DateTime.UtcNow - _epoch).TotalMilliseconds;
+        }
+        /// <summary>
+        /// Returns the milliseconds since epoch (1970/1/1).
+        /// </summary>
+        /// <returns></returns>
+        public long GetTimestamp() { return timestamp; }
+
+        /// <summary>
+        /// Initiates the internal List if it is null.
+        /// </summary>
+        public List<Entity> GetSubs() {
+            if (this.subs == null)
+                this.subs = new List<Entity>();
+            return this.subs;
+        }
+
+        /// <summary>
+        /// For serialization only.
+        /// </summary>
+        public Entities() { }
         /// <summary>
         /// Match the name and the Entities if any with the given Entities. The order
         /// of Entities and CounterInfos in both collections is not important. You
@@ -24,14 +61,14 @@ namespace vApus.Monitor.Sources.Base {
         /// <param name="matchCounters"></param>
         /// <returns></returns>
         public bool Match(Entities entities, bool matchCounters) {
-            bool match = base.Count == entities.Count;
+            bool match = GetSubs().Count == entities.GetSubs().Count;
             if (match) {
-                int size = base.Count;
+                int size = subs.Count;
                 var matched = new List<int>();
                 for (int i = 0; i != size; i++) {
-                    Entity entity = base[i];
+                    Entity entity = subs[i];
                     for (int j = 0; j != size; j++) {
-                        if (!matched.Contains(j) && entity.Match(entities[i], matchCounters)) {
+                        if (!matched.Contains(j) && entity.Match(entities.subs[i], matchCounters)) {
                             matched.Add(j);
                         }
                     }
@@ -50,7 +87,7 @@ namespace vApus.Monitor.Sources.Base {
         /// <returns></returns>
         public List<String> GetCountersAtLastLevel() {
             int level = GetLevelCount() - 1;
-            if (level < 1 && !base[0].IsAvailable())
+            if (level < 1 && !GetSubs()[0].IsAvailable())
                 return new List<string>();
 
             return GetCounters(level);
@@ -92,8 +129,8 @@ namespace vApus.Monitor.Sources.Base {
         /// </summary>
         /// <param name="entities"></param>
         public void SetCounters(Entities entities) {
-            for (int i = 0; i != base.Count; i++) {
-                Entity to = base[i];
+            for (int i = 0; i != GetSubs().Count; i++) {
+                Entity to = subs[i];
                 Entity from = entities.GetEntity(to.GetName());
 
                 to.SetCounters(from);
@@ -106,8 +143,8 @@ namespace vApus.Monitor.Sources.Base {
         /// <param name="name"></param>
         /// <returns>If not fount: null.</returns>
         public Entity GetEntity(string name) {
-            for (int i = 0; i != base.Count; i++) {
-                Entity entity = base[i];
+            for (int i = 0; i != GetSubs().Count; i++) {
+                Entity entity = subs[i];
                 if (entity.GetName() == name)
                     return entity;
             }
@@ -162,9 +199,9 @@ namespace vApus.Monitor.Sources.Base {
             var counterInfos = new List<CounterInfo>();
 
             --level;
-            for (int i = 0; i != base.Count; i++) {
-                List<CounterInfo> subCounterInfos = base[i].GetCounterInfos(level);
-                if (base[i].IsAvailable() && subCounterInfos.Count == 0)
+            for (int i = 0; i != GetSubs().Count; i++) {
+                List<CounterInfo> subCounterInfos = subs[i].GetCounterInfos(level);
+                if (subs[i].IsAvailable() && subCounterInfos.Count == 0)
                     throw new NullReferenceException("CounterInfos does not exist at the given level (" + givenLevel + ").");
                 else
                     counterInfos.AddRange(subCounterInfos);
@@ -178,9 +215,9 @@ namespace vApus.Monitor.Sources.Base {
         /// <returns></returns>
         public int GetLevelCount() {
             int levelCount = 0;
-            if (base.Count != 0) {
+            if (GetSubs().Count != 0) {
                 levelCount = 1;
-                levelCount += base[0].GetLevelCount();
+                levelCount += subs[0].GetLevelCount();
             }
             return levelCount;
         }
@@ -190,9 +227,9 @@ namespace vApus.Monitor.Sources.Base {
         /// </summary>
         /// <returns></returns>
         public int GetDeepCount() {
-            int deepCount = base.Count;
-            for (int i = 0; i != base.Count; i++)
-                deepCount += base[i].GetDeepCount();
+            int deepCount = GetSubs().Count;
+            for (int i = 0; i != subs.Count; i++)
+                deepCount += subs[i].GetDeepCount();
 
             return deepCount;
         }
@@ -246,8 +283,8 @@ namespace vApus.Monitor.Sources.Base {
         /// <returns></returns>
         public bool HasDuplicateNames() {
             var names = new List<String>();
-            for (int i = 0; i != base.Count; i++) {
-                Entity entity = base[i];
+            for (int i = 0; i != GetSubs().Count; i++) {
+                Entity entity = subs[i];
                 if (names.Contains(entity.GetName()))
                     return true;
 
@@ -265,8 +302,8 @@ namespace vApus.Monitor.Sources.Base {
         /// <returns></returns>
         public Entities Clone() {
             var clone = new Entities();
-            foreach (Entity entity in this)
-                clone.Add(entity.Clone());
+            foreach (Entity entity in GetSubs())
+                clone.GetSubs().Add(entity.Clone());
             return clone;
         }
     }

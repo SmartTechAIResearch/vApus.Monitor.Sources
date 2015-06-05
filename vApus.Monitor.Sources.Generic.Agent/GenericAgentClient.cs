@@ -115,7 +115,7 @@ namespace vApus.Monitor.Sources.Generic.Agent {
                     //Reset the connecion to be sure.
                     _socket.Close();
 
-                    if (_wiw == null || _wiw.Count == 0)
+                    if (_wiw == null || _wiw.GetSubs().Count == 0)
                         throw new Exception("You did not set the counters you want to monitor.");
 
                     Connect();

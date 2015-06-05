@@ -7,6 +7,7 @@
  */
 using RandomUtils.Log;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -73,38 +74,38 @@ namespace vApus.Monitor.Sources.Base {
                 string hostNameOrIP = GetParameter("Host Name or IP address").Value as string;
                 if (hostNameOrIP.Trim().Length == 0) return false;
 
-                IPAddress[] ipAddresses = null;
+                List<IPAddress> ipAddresses = null;
 
                 try {
-                    ipAddresses = Dns.GetHostEntry(hostNameOrIP).AddressList;
-                    if (ipAddresses.Length == 0) throw new Exception("(Reverse) lookup failed.");
+                    ipAddresses = new List<IPAddress>(Dns.GetHostEntry(hostNameOrIP).AddressList);
+                    if (ipAddresses.Count == 0) throw new Exception("(Reverse) lookup failed.");
                 } catch {
                     //If the entry could not be resolved (no dns).
-                    IPAddress ipAddress;
-                    if (IPAddress.TryParse(hostNameOrIP, out ipAddress))
-                        ipAddresses = new IPAddress[] { ipAddress };
+                    ipAddresses = new List<IPAddress>();
                 }
 
-                if (ipAddresses != null) {
-                    int port = (int)GetParameter("Port").Value;
+                IPAddress originalIpAddress; //If the entry could not be resolved (no dns).
+                if (IPAddress.TryParse(hostNameOrIP, out originalIpAddress))
+                    ipAddresses.Add(originalIpAddress);
 
-                    foreach (IPAddress ipAddress in ipAddresses) {
-                        try {
-                            System.Net.Sockets.Socket socket = new System.Net.Sockets.Socket(ipAddress.AddressFamily, _socketType, _protocolType);
-                            socket.ReceiveBufferSize = socket.SendBufferSize = _bufferSize;
-                            socket.ReceiveTimeout = socket.SendTimeout = 60000;
+                int port = (int)GetParameter("Port").Value;
 
-                            _connectWaitHandle.Reset();
-                            socket.BeginConnect(ipAddress, port, ConnectCallback, socket);
-                            _connectWaitHandle.WaitOne(CONNECTTIMEOUT);
+                foreach (IPAddress ipAddress in ipAddresses) {
+                    try {
+                        System.Net.Sockets.Socket socket = new System.Net.Sockets.Socket(ipAddress.AddressFamily, _socketType, _protocolType);
+                        socket.ReceiveBufferSize = socket.SendBufferSize = _bufferSize;
+                        socket.ReceiveTimeout = socket.SendTimeout = 60000;
 
-                            if (socket.Connected) {
-                                _socket = socket;
-                                break;
-                            }
-                        } catch (Exception ex) {
-                            Loggers.Log(Level.Info, "Failed to connect the socket for ip address: " + ipAddress.ToString(), ex);
+                        _connectWaitHandle.Reset();
+                        socket.BeginConnect(ipAddress, port, ConnectCallback, socket);
+                        _connectWaitHandle.WaitOne(CONNECTTIMEOUT);
+
+                        if (socket.Connected) {
+                            _socket = socket;
+                            break;
                         }
+                    } catch (Exception ex) {
+                        Loggers.Log(Level.Info, "Failed to connect the socket for ip address: " + ipAddress.ToString(), ex);
                     }
                 }
             }

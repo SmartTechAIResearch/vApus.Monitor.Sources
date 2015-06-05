@@ -107,7 +107,7 @@ namespace vApus.Monitor.Sources.LocalWMI {
                 }
             }
 
-            wdyh.Add(entity);
+            wdyh.GetSubs().Add(entity);
 
             Thread.CurrentThread.CurrentCulture = prevCulture;
 
@@ -125,7 +125,7 @@ namespace vApus.Monitor.Sources.LocalWMI {
         }
 
         public void RefreshValues(Entities wiw) {
-            Entity entity = wiw[0];
+            Entity entity = wiw.GetSubs()[0];
             foreach (CounterInfo counterInfo in entity.GetSubs())
                 foreach (CounterInfo instance in counterInfo.GetSubs())
                     instance.SetCounter(GetNextValue(counterInfo.GetName() + "." + instance.GetName()));
