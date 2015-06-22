@@ -48,6 +48,36 @@ namespace vApus.Monitor.Sources.Base {
         #endregion
 
         /// <summary>
+        /// Reverse lookups the hostname if possible.
+        /// </summary>
+        public IPAddress[] IPAddresses {
+            get {
+                string hostNameOrIP = GetParameter("Host Name or IP address").Value as string;
+                if (hostNameOrIP.Trim().Length == 0) throw new Exception("No IP address or hostname was given.");
+
+                List<IPAddress> ipAddresses = null;
+
+                try {
+                    ipAddresses = new List<IPAddress>(Dns.GetHostEntry(hostNameOrIP).AddressList);
+                } catch {
+                    //If the entry could not be resolved (no dns).
+                    ipAddresses = new List<IPAddress>();
+                }
+
+                IPAddress originalIpAddress; //If the entry could not be resolved (no dns).
+                if (IPAddress.TryParse(hostNameOrIP, out originalIpAddress))
+                    ipAddresses.Add(originalIpAddress);
+
+                return ipAddresses.ToArray();
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        public int Port {
+            get { return (int)GetParameter("Port").Value; }
+        }
+        /// <summary>
         /// 
         /// </summary>
         public override bool IsConnected { get { return _socket != null && _socket.Connected; } }
@@ -71,34 +101,14 @@ namespace vApus.Monitor.Sources.Base {
         /// <returns></returns>
         public override bool Connect() {
             if (!IsConnected) {
-                string hostNameOrIP = GetParameter("Host Name or IP address").Value as string;
-                if (hostNameOrIP.Trim().Length == 0) return false;
-
-                List<IPAddress> ipAddresses = null;
-
-                try {
-                    ipAddresses = new List<IPAddress>(Dns.GetHostEntry(hostNameOrIP).AddressList);
-                    if (ipAddresses.Count == 0) throw new Exception("(Reverse) lookup failed.");
-                } catch {
-                    //If the entry could not be resolved (no dns).
-                    ipAddresses = new List<IPAddress>();
-                }
-
-                IPAddress originalIpAddress; //If the entry could not be resolved (no dns).
-                if (IPAddress.TryParse(hostNameOrIP, out originalIpAddress))
-                    ipAddresses.Add(originalIpAddress);
-
-                int port = (int)GetParameter("Port").Value;
-
-                foreach (IPAddress ipAddress in ipAddresses) {
+                int port = Port;
+                foreach (IPAddress ipAddress in IPAddresses) {
                     try {
                         System.Net.Sockets.Socket socket = new System.Net.Sockets.Socket(ipAddress.AddressFamily, _socketType, _protocolType);
                         socket.ReceiveBufferSize = socket.SendBufferSize = _bufferSize;
                         socket.ReceiveTimeout = socket.SendTimeout = 60000;
 
-                        _connectWaitHandle.Reset();
-                        socket.BeginConnect(ipAddress, port, ConnectCallback, socket);
-                        _connectWaitHandle.WaitOne(CONNECTTIMEOUT);
+                        Connect(socket, ipAddress, port, CONNECTTIMEOUT, 1);
 
                         if (socket.Connected) {
                             _socket = socket;
@@ -111,9 +121,61 @@ namespace vApus.Monitor.Sources.Base {
             }
             return IsConnected;
         }
+
+        /// <summary>
+        ///     Connects to a socket.
+        ///     Throws an exception if it is not able too.
+        ///     You must check the connected property first before calling this.
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="ipAddress"></param>
+        /// <param name="port"></param>
+        /// <param name="connectTimeout">In ms. If smaller then or equals 0, the timeout is infinite. If a timeout is given, connecting will happen async</param>
+        /// <param name="retries">If the timeout isn't sufficient you can set a retry count.</param>
+        protected void Connect(Socket socket, IPAddress ipAddress, int port, int connectTimeout, int retries = 0) {
+            Exception exception = null;
+            var _remoteEP = new IPEndPoint(ipAddress, port);
+            for (int i = 0; i != retries + 1; i++)
+                try {
+                    _connectWaitHandle.Reset();
+                    exception = null;
+                    if (connectTimeout < 1) {
+                        socket.Connect(_remoteEP);
+                        _connectWaitHandle.Set();
+                    } else {
+                        //Connect async to the remote endpoint.
+                        socket.BeginConnect(_remoteEP, ConnectCallback, socket);
+                        //Use a timeout to connect.
+                        _connectWaitHandle.WaitOne(connectTimeout, false);
+                        if (!socket.Connected)
+                            throw new Exception("Connecting to the agent timed out.");
+                    }
+                    break;
+                } catch (Exception ex) {
+                    //Reuse the socket for re-trying to connect.
+                    try {
+                        if (socket.Connected)
+                            socket.Disconnect(true);
+                    } catch {
+                        //Ignore.
+                    }
+                    socket = new Socket(socket.AddressFamily, socket.SocketType, socket.ProtocolType);
+
+
+                    exception = ex;
+                }
+
+            _connectWaitHandle.Set();
+
+            if (exception != null) throw exception;
+        }
+
+        /// <summary>
+        /// </summary>
+        /// <param name="ar"></param>
         private void ConnectCallback(IAsyncResult ar) {
-            System.Net.Sockets.Socket socket = ar.AsyncState as System.Net.Sockets.Socket;
             try {
+                var socket = ar.AsyncState as Socket;
                 if (socket.Connected)
                     socket.EndConnect(ar);
             } catch (Exception ex) {
@@ -121,19 +183,38 @@ namespace vApus.Monitor.Sources.Base {
             }
             _connectWaitHandle.Set();
         }
+
         /// <summary>
-        /// Write to / read from the socket. Serialization stuff must be done here.
-        /// Also add Console.WriteLine stuff to be used when testing. Check using CanConsoleWriteLine if there should be outputted.
+        /// Write to / read from the socket. Calls Write(write) and then returns Read(write as expected response).
         /// </summary>
         /// <param name="write"></param>
         /// <returns></returns>
-        protected abstract T WriteRead(T write);
+        protected T WriteRead(T write) {
+            Write(write);
+            return Read(write);
+        }
+        /// <summary>
+        /// Write to a socket. Used in WriteRead(write).  Serialization stuff must be done here.
+        /// Also add Console.WriteLine stuff to be used when testing. Check using CanConsoleWriteLine if there should be outputted.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="write"></param>
+        protected abstract void Write(T write);
         /// <summary>
         /// Read from the socket, use this in WriteRead(T) or in Start() for getting the counters back.
         /// </summary>
         /// <param name="expectedResponse">When called in WriteRead(T) this should be the value of write.</param>
         /// <returns></returns>
         protected abstract T Read(T expectedResponse);
+
+        /// <summary>
+        /// Gets the bandwidths if connected but not started!
+        /// You should only do this with one client at a time.
+        /// </summary>
+        /// <param name="downloadSpeedInMbps"></param>
+        /// <param name="uploadSpeedInMbps"></param>
+        public abstract void TestBandwidth(out double downloadSpeedInMbps, out double uploadSpeedInMbps);
+
         /// <summary>
         /// Stops and disconnects, do all other cleanup stuff in Stop().
         /// </summary>
