@@ -233,10 +233,6 @@ namespace vApus.Monitor.Sources.Generic.Agent {
                     string agentVersion = AgentVersion;
                     string agentCopyright = AgentCopyright;
 
-                    /* Should only be tested with one client.
-                    double downloadSpeedInMbps, uploadSpeedInMbps;
-                    TestBandwidth(out downloadSpeedInMbps, out uploadSpeedInMbps);
-                    */
                     string config = Config;
 
                     int refreshCountersInterval = RefreshCountersInterval;
@@ -282,23 +278,6 @@ namespace vApus.Monitor.Sources.Generic.Agent {
             if (validate)
                 ValidateCounters(entities);
             return entities;
-        }
-
-        /// <summary>
-        /// Gets the bandwidths if connected but not started!
-        /// You should only do this with one client at a time.
-        /// Event then the numbers won't be entirely correct due to other traffic on the Nics and the fact that we are only measuring 'TCP bandwidth'.
-        /// </summary>
-        /// <param name="downloadSpeedInMbps">-1 if failed</param>
-        /// <param name="uploadSpeedInMbps">-1 if failed</param>
-        public override void TestBandwidth(out double downloadSpeedInMbps, out double uploadSpeedInMbps) {
-            downloadSpeedInMbps = uploadSpeedInMbps = -1;
-            if (!_started) {
-                Write("bandwidth");
-                uploadSpeedInMbps = BandwidthTest.GetUploadSpeed(base._socket);
-                downloadSpeedInMbps = BandwidthTest.GetDownloadSpeed(base._socket);
-                Read("bandwidth");
-            }
         }
     }
 }

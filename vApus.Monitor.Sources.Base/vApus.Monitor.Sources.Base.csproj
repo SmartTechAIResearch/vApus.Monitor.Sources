@@ -53,7 +53,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BandwidthTest.cs" />
     <Compile Include="BaseClient.cs" />
     <Compile Include="BaseClientSwitcher.cs" />
     <Compile Include="BasePollingClient.cs" />

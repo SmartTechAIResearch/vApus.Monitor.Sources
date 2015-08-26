@@ -208,14 +208,6 @@ namespace vApus.Monitor.Sources.Base {
         protected abstract T Read(T expectedResponse);
 
         /// <summary>
-        /// Gets the bandwidths if connected but not started!
-        /// You should only do this with one client at a time.
-        /// </summary>
-        /// <param name="downloadSpeedInMbps"></param>
-        /// <param name="uploadSpeedInMbps"></param>
-        public abstract void TestBandwidth(out double downloadSpeedInMbps, out double uploadSpeedInMbps);
-
-        /// <summary>
         /// Stops and disconnects, do all other cleanup stuff in Stop().
         /// </summary>
         /// <returns></returns>

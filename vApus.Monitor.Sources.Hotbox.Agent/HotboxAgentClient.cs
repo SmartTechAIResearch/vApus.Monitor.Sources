@@ -234,14 +234,5 @@ namespace vApus.Monitor.Sources.Hotbox.Agent {
 
             return _wiwWithCounters;
         }
-        /// <summary>
-        /// Not implemented.
-        /// </summary>
-        /// <param name="downloadSpeedInMbps"></param>
-        /// <param name="uploadSpeedInMbps"></param>
-        public override void TestBandwidth(out double downloadSpeedInMbps, out double uploadSpeedInMbps) {
-            downloadSpeedInMbps = -1;
-            uploadSpeedInMbps = -1;
-        }
     }
 }
