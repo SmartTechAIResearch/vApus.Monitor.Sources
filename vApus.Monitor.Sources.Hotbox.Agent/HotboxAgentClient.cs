@@ -115,11 +115,7 @@ namespace vApus.Monitor.Sources.Hotbox.Agent {
             return !base._started;
         }
 
-        protected override string WriteRead(string write) {
-            Write(write);
-            return Read(write);
-        }
-        private void Write(string write) {
+        protected override void Write(string write) {
             if (base._verboseConsoleOutput)
                 Console.WriteLine("Out: " + write);
             if (!write.EndsWith("\n")) write += '\n';

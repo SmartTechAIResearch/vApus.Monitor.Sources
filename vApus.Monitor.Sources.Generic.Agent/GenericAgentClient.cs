@@ -9,6 +9,8 @@ using Newtonsoft.Json;
 using RandomUtils;
 using RandomUtils.Log;
 using System;
+using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using vApus.Monitor.Sources.Base;
 
@@ -128,7 +130,7 @@ namespace vApus.Monitor.Sources.Generic.Agent {
                         while (base._started)
                             try {
                                 base.InvokeOnMonitor(ParseCounters(Read("[{\"name\":\"entity\",\"isAvailable\":true,\"subs\":[{\"name\":\"header\",\"subs\":...")));
-                            }catch(JsonReaderException jex){
+                            } catch (JsonReaderException jex) {
                                 base.InvokeOnMonitor(null);
                                 Loggers.Log(Level.Error, "Communication Error. Dropping the counter.", jex);
                             } catch (Exception ex) {
@@ -183,12 +185,11 @@ namespace vApus.Monitor.Sources.Generic.Agent {
             return !base._started;
         }
 
-        protected override string WriteRead(string write) {
+        protected override void Write(string write) {
             if (base._verboseConsoleOutput)
                 Console.WriteLine("Out: " + write);
             if (!write.EndsWith("\n")) write += '\n';
             base._socket.Send(SerializationHelper.Encode(write, SerializationHelper.TextEncoding.UTF8));
-            return Read(write);
         }
         protected override string Read(string expectedResponse) {
             string read = string.Empty;
@@ -231,7 +232,9 @@ namespace vApus.Monitor.Sources.Generic.Agent {
                     string agentName = AgentName;
                     string agentVersion = AgentVersion;
                     string agentCopyright = AgentCopyright;
+
                     string config = Config;
+
                     int refreshCountersInterval = RefreshCountersInterval;
                     string decimalSeparator = DecimalSeparator;
 
