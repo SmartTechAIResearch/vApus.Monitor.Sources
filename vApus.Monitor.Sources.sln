@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.Base", "vApus.Monitor.Sources.Base\vApus.Monitor.Sources.Base.csproj", "{A7248C1C-32C9-4943-8074-9C210511C475}"
 EndProject
@@ -30,6 +30,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.Elasticsearch", "vApus.Monitor.Sources.Elasticsearch\vApus.Monitor.Sources.Elasticsearch.csproj", "{6ECD1945-78D2-4DD3-B60A-8C19C634CB11}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.Sigar.Agent", "vApus.Monitor.Sources.Sigar.Agent\vApus.Monitor.Sources.Sigar.Agent.csproj", "{BEAEB527-14C8-430E-BA2E-9E867730B819}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.HbaseRegionServer", "vApus.Monitor.Sources.HbaseRegionServer\vApus.Monitor.Sources.HbaseRegionServer.csproj", "{4B540907-E93F-4B8A-B6C1-144611D6F32A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.HDFSNameNode", "vApus.Monitor.Sources.HDFSNameNode\vApus.Monitor.Sources.HDFSNameNode.csproj", "{1F300C5F-64C7-4E87-BEBC-7114C4E1789A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.HDFSDataNode", "vApus.Monitor.Sources.HDFSDataNode\vApus.Monitor.Sources.HDFSDataNode.csproj", "{8F6CCE5D-C414-4DAB-8CBA-98B52405C6D2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -93,6 +99,18 @@ Global
 		{BEAEB527-14C8-430E-BA2E-9E867730B819}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BEAEB527-14C8-430E-BA2E-9E867730B819}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BEAEB527-14C8-430E-BA2E-9E867730B819}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4B540907-E93F-4B8A-B6C1-144611D6F32A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4B540907-E93F-4B8A-B6C1-144611D6F32A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4B540907-E93F-4B8A-B6C1-144611D6F32A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4B540907-E93F-4B8A-B6C1-144611D6F32A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F300C5F-64C7-4E87-BEBC-7114C4E1789A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F300C5F-64C7-4E87-BEBC-7114C4E1789A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F300C5F-64C7-4E87-BEBC-7114C4E1789A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F300C5F-64C7-4E87-BEBC-7114C4E1789A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F6CCE5D-C414-4DAB-8CBA-98B52405C6D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F6CCE5D-C414-4DAB-8CBA-98B52405C6D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F6CCE5D-C414-4DAB-8CBA-98B52405C6D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F6CCE5D-C414-4DAB-8CBA-98B52405C6D2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
