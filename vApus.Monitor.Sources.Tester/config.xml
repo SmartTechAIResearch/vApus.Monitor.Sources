@@ -14,10 +14,13 @@ Author(s):
   <!--<test client="Racktivity Client" parameters="racktivity.sslab.lan" testCounts="1" repeats="0" />-->
   <!--<test client="IPMI Client" parameters="192.168.32.18,USERID,PASSW0RD,true, false" testCounts="1" repeats="0" />-->
   <!--<test client="ESXi Client" parameters="192.168.35.16,root,SiSvLbR0c" testCounts="1" repeats="0" />-->
-  <test client="WMI Agent Client" parameters="192.168.32.32" testCounts="1" repeats="0" />
+  <!--<test client="WMI Agent Client" parameters="192.168.32.32" testCounts="1" repeats="0" />-->
   <!--<test client="Local WMI Client" parameters="" testCounts="1" repeats="0" />-->
   <!--<test client="Hotbox Agent Client" parameters="hotbox.sslab.lan" testCounts="1" repeats="0" />-->
   <!--<test client="HMT Agent Client" parameters="192.168.34.48" testCounts="1" repeats="3" />-->
   <!--<test client="Elasticsearch Node" parameters="hp-g8.sslab.lan,9200" testCounts="1" repeats="3" />-->
   <!--<test client="IOStat Agent Client" parameters="192.168.34.48" testCounts="1" repeats="3" />-->
+  <!--<test client="HDFS Name Server" parameters="bdc-01,16030" testCounts="1" repeats="1" />-->
+  <!--<test client="HDFS Name Node" parameters="192.168.32.47,50070" testCounts="1" repeats="1" />-->
+  <test client="HDFS Data Node" parameters="bdc-01,50075" testCounts="1" repeats="1" />
 </tests>

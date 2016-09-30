@@ -5,12 +5,12 @@
  * Author(s):
  *    Dieter Vandroemme
  */
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using vApus.Monitor.Sources.Base;
 
@@ -21,28 +21,21 @@ namespace vApus.Monitor.Sources.LocalWMI {
         public string GetHardwareInfo() {
             CultureInfo prevCulture = Thread.CurrentThread.CurrentCulture;
             Thread.CurrentThread.CurrentCulture = Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
-
-            var sb = new StringBuilder();
-
+            
             var systemInformation = new SystemInformation();
             if (!systemInformation.Get())
                 throw new Exception("Failed to get the hardware info.");
 
+            var dic = new Dictionary<string, string[]>();
             // get all public instance properties
             PropertyInfo[] propertyInfos = typeof(SystemInformation).GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
-            foreach (PropertyInfo propInfo in propertyInfos) {
-                sb.AppendLine(propInfo.Name);
-                string value = propInfo.GetValue(systemInformation, null).ToString();
-                foreach (string line in value.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)) {
-                    sb.Append("  ");
-                    sb.AppendLine(line);
-                }
-                sb.AppendLine();
-            }
-
+            foreach (PropertyInfo propInfo in propertyInfos) 
+                dic.Add(propInfo.Name, propInfo.GetValue(systemInformation, null).ToString().Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries));
+                
             Thread.CurrentThread.CurrentCulture = prevCulture;
-            return sb.ToString();
+
+            return JsonConvert.SerializeObject(dic);
         }
 
         public Entities GetWDYH() {
