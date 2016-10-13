@@ -13,6 +13,7 @@ using System.Globalization;
 using System.Reflection;
 using System.Threading;
 using vApus.Monitor.Sources.Base;
+using System.Linq;
 
 namespace vApus.Monitor.Sources.LocalWMI {
     public class WmiHelper {
@@ -31,7 +32,7 @@ namespace vApus.Monitor.Sources.LocalWMI {
             PropertyInfo[] propertyInfos = typeof(SystemInformation).GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
             foreach (PropertyInfo propInfo in propertyInfos) 
-                dic.Add(propInfo.Name, propInfo.GetValue(systemInformation, null).ToString().Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries));
+                dic.Add(propInfo.Name.Replace('_', ' '), propInfo.GetValue(systemInformation, null).ToString().Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries));
                 
             Thread.CurrentThread.CurrentCulture = prevCulture;
 

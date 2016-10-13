@@ -24,7 +24,9 @@ namespace vApus.Monitor.Sources.LocalWMI {
         private string _baseboard;
         private string _bios;
         private string _processors;
+        private uint _totalCores;
         private string _memory;
+        private ulong _totalMemoryInMegabytes;
         private string _disks;
         private string _nics;
         #endregion
@@ -36,7 +38,9 @@ namespace vApus.Monitor.Sources.LocalWMI {
         public string Baseboard { get { return _baseboard; } }
         public string Bios { get { return _bios; } }
         public string Processors { get { return _processors; } }
+        public uint Total_cores { get { return _totalCores; } }
         public string Memory { get { return _memory; } }
+        public ulong Total_memory_in_megabytes { get { return _totalMemoryInMegabytes; } }
         public string Disks { get { return _disks; } }
         public string NICs { get { return _nics; } }
         #endregion
@@ -46,7 +50,8 @@ namespace vApus.Monitor.Sources.LocalWMI {
         public bool Get() {
             try {
                 GetSystemInformation();
-            } catch {
+            }
+            catch {
                 return false;
             }
 
@@ -99,12 +104,16 @@ namespace vApus.Monitor.Sources.LocalWMI {
                 if (mo["PartNumber"] != null) _baseboard += " - part number: " + mo["PartNumber"].ToString().Trim();
             }
 
-            col = new ManagementObjectSearcher(scope, new ObjectQuery("Select Name from Win32_Processor")).Get();
+            col = new ManagementObjectSearcher(scope, new ObjectQuery("Select Name, NumberOfEnabledCore from Win32_Processor")).Get();
+            _totalCores = 0;
             var arr = new string[col.Count];
             int i = 0;
-            foreach (ManagementObject mo in col)
+            foreach (ManagementObject mo in col) {
                 arr[i++] = mo["Name"].ToString().Trim();
+                _totalCores += (uint)mo["NumberOfEnabledCore"];
+            }
             _processors = Combine(arr);
+
 
             col = new ManagementObjectSearcher(scope, new ObjectQuery("Select Capacity, Manufacturer, Model, PartNumber, SerialNumber, Speed from Win32_PhysicalMemory")).Get();
             arr = new string[col.Count];
@@ -123,6 +132,10 @@ namespace vApus.Monitor.Sources.LocalWMI {
                 arr[i++] = ram;
             }
             _memory = Combine(arr);
+
+            col = new ManagementObjectSearcher(scope, new ObjectQuery("SELECT TotalVisibleMemorySize FROM Win32_OperatingSystem")).Get();
+            foreach (ManagementObject mo in col)
+                _totalMemoryInMegabytes = (ulong)mo["TotalVisibleMemorySize"] / 1024;
 
             col = new ManagementObjectSearcher(scope, new ObjectQuery("Select Size, Model from Win32_DiskDrive where InterfaceType != 'USB'")).Get();
             arr = new string[col.Count];
@@ -144,9 +157,11 @@ namespace vApus.Monitor.Sources.LocalWMI {
                 if (mediaConnectState == 0) {
                     s += " (unknown status)";
                     sortedState = 3;
-                } else if (mediaConnectState == 1) {
+                }
+                else if (mediaConnectState == 1) {
                     s += " (connected)";
-                } else if (mediaConnectState == 2) {
+                }
+                else if (mediaConnectState == 2) {
                     s += " (disconnected)";
                 }
 
