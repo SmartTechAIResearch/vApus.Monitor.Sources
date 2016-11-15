@@ -25,6 +25,7 @@ namespace vApus.Monitor.Sources.LocalWMI {
         private string _bios;
         private string _processors;
         private uint _totalCores;
+        private uint _totalThreads;
         private string _memory;
         private ulong _totalMemoryInMegabytes;
         private string _disks;
@@ -39,6 +40,7 @@ namespace vApus.Monitor.Sources.LocalWMI {
         public string Bios { get { return _bios; } }
         public string Processors { get { return _processors; } }
         public uint Total_cores { get { return _totalCores; } }
+        public uint Total_threads { get { return _totalThreads; } }
         public string Memory { get { return _memory; } }
         public ulong Total_memory_in_megabytes { get { return _totalMemoryInMegabytes; } }
         public string Disks { get { return _disks; } }
@@ -104,13 +106,15 @@ namespace vApus.Monitor.Sources.LocalWMI {
                 if (mo["PartNumber"] != null) _baseboard += " - part number: " + mo["PartNumber"].ToString().Trim();
             }
 
-            col = new ManagementObjectSearcher(scope, new ObjectQuery("Select Name, NumberOfEnabledCore from Win32_Processor")).Get();
+            col = new ManagementObjectSearcher(scope, new ObjectQuery("Select Name, NumberOfCores, NumberOfLogicalProcessors from Win32_Processor")).Get();
             _totalCores = 0;
+            _totalThreads = 0;
             var arr = new string[col.Count];
             int i = 0;
             foreach (ManagementObject mo in col) {
                 arr[i++] = mo["Name"].ToString().Trim();
-                _totalCores += (uint)mo["NumberOfEnabledCore"];
+                _totalCores += (uint)mo["NumberOfCores"];
+                _totalThreads += (uint)mo["NumberOfLogicalProcessors"];
             }
             _processors = Combine(arr);
 
