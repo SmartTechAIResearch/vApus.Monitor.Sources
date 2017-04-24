@@ -105,7 +105,7 @@ namespace vApus.Monitor.Sources.Elasticsearch {
                 new CounterInfo("Merges Total"),
                 new CounterInfo("Merges Time [ms]"),
                 new CounterInfo("Merges Total Docs"),
-                new CounterInfo("Filter Cache Size in Memory [byte]"),
+                new CounterInfo("Query Cache Size in Memory [byte]"),
                 new CounterInfo("Segment Count"),
                 new CounterInfo("Segment Memory in Bytes"),
                 new CounterInfo("Open File Descriptors"),
@@ -232,8 +232,8 @@ namespace vApus.Monitor.Sources.Elasticsearch {
                                 ci.SetCounter((float)indices["merges"]["total_docs"]);
                                 break;
 
-                            case "Filter Cache Size in Memory [byte]":
-                                ci.SetCounter((float)indices["filter_cache"]["memory_size_in_bytes"]);
+                            case "Query Cache Size in Memory [byte]":
+                                ci.SetCounter((float)indices["query_cache"]["memory_size_in_bytes"]);
                                 break;
 
                             case "Segment Count":
