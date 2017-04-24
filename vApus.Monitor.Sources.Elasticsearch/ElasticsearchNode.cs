@@ -9,56 +9,49 @@ using System.IO;
 using System.Json;
 using System.Globalization;
 
-namespace vApus.Monitor.Sources.Elasticsearch
-{
-    public class ElasticsearchNode : BasePollingClient
-    {
+namespace vApus.Monitor.Sources.Elasticsearch {
+    public class ElasticsearchNode : BasePollingClient {
         private string _hostname;
         private string _port;
 
-        private JsonValue GetJSONObject(string url)
-        {
+        private bool _connected = false;
+
+        private JsonValue GetJSONObject(string url) {
             url = "http://" + _hostname + ":" + _port + "/" + url;
             WebRequest req = WebRequest.CreateHttp(url);
             req.Timeout = 5000;
             req.Proxy = null;
-            using (WebResponse res = req.GetResponse())
-            {
+            using (WebResponse res = req.GetResponse()) {
                 using (StreamReader reader = new StreamReader(res.GetResponseStream()))
                     return JsonObject.Parse(reader.ReadToEnd());
             }
         }
 
-        public ElasticsearchNode()
-        {
-            base._parameters = new Parameter[] 
+        public ElasticsearchNode() {
+            base._parameters = new Parameter[]
             {
-                new Parameter() { Name = "Hostname", DefaultValue = "hp-g8.sslab.lan" },
+                new Parameter() { Name = "Hostname", DefaultValue = "" },
                 new Parameter() { Name = "Port", DefaultValue = "9200" }
             };
         }
 
-        public override bool IsConnected { get { return true /* maybe */; } }
+        public override bool IsConnected { get { return _connected; } }
 
         public override int RefreshCountersInterval { get { return 1000; } }
 
         public override string DecimalSeparator { get { return CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator; } }
 
-        public override string Config
-        {
-            get
-            {
+        public override string Config {
+            get {
                 return "<NotReallyAConfig></NotReallyAConfig>";
             }
         }
 
-        public Entities Entities
-        {
-            get
-            {
+        public Entities Entities {
+            get {
                 Entities entities = new Entities();
 
-                foreach (var x in GetJSONObject("/_nodes/stats")["nodes"])
+                foreach (var x in GetJSONObject("_nodes/stats")["nodes"])
                     entities.GetSubs().Add(new Entity(x.Value["name"].ToString() + " (" + x.Key + ")", true));
                 //    entities.Add(new Entity(x.Value["name"].ToString(), vApusSMT.Base.PowerState.On));
 
@@ -67,34 +60,36 @@ namespace vApus.Monitor.Sources.Elasticsearch
             }
         }
 
-        public override bool Connect()
-        {
+        public override bool Connect() {
             //    InitConnect();
             _hostname = (string)base.GetParameter("Hostname").Value;
             _port = (string)base.GetParameter("Port").Value;
 
+            try {
+                var entities = Entities;
+                _connected = true;
+            }
+            catch {
+                _connected = false;
+            }
 
-            return true;
+            return _connected;
         }
 
 
-        public override bool Disconnect()
-        {
-            try
-            {
+        public override bool Disconnect() {
+            try {
                 Stop();
                 return true;
             }
-            catch (Exception)
-            {
+            catch (Exception) {
                 return false;
             }
         }
 
-        public List<CounterInfo> GetCountersForEntity(string ename)
-        {
-            return new List<CounterInfo> 
-            { 
+        public List<CounterInfo> GetCountersForEntity(string ename) {
+            return new List<CounterInfo>
+            {
                 new CounterInfo("Document Count"),
                 new CounterInfo("Store Size [byte]"),
                 new CounterInfo("Index Total"),
@@ -124,19 +119,15 @@ namespace vApus.Monitor.Sources.Elasticsearch
             };
         }
 
-        public override Entities WDYH
-        {
-            get
-            {
+        public override Entities WDYH {
+            get {
 
-                if (base._wdyh == null)
-                {
+                if (base._wdyh == null) {
 
                     Entities dic = new Entities();
 
 
-                    foreach (Entity e in Entities.GetSubs())
-                    {
+                    foreach (Entity e in Entities.GetSubs()) {
                         e.subs = GetCountersForEntity("~* Ponyaaier 5000 *~");
                         dic.GetSubs().Add(e);
                     }
@@ -167,130 +158,131 @@ namespace vApus.Monitor.Sources.Elasticsearch
 
 
 
-        protected override Entities PollCounters()
-        {
+        protected override Entities PollCounters() {
             if (base._wiwWithCounters == null)
                 base._wiwWithCounters = base._wiw.Clone();
 
             JsonValue jv = GetJSONObject("_nodes/stats")["nodes"];
 
-            foreach (Entity e in base._wiwWithCounters.GetSubs())
-            {
+            foreach (Entity e in base._wiwWithCounters.GetSubs()) {
                 var stats = jv[e.GetName().Substring(e.GetName().IndexOf('(') - +2).Replace(")", "").Replace("(", "").Replace("\"", "").Trim()];
                 var indices = stats["indices"];
                 var jvm = stats["jvm"];
 
                 foreach (CounterInfo ci in e.GetSubs())
-                {
+                    try {
+                        switch (ci.name.Trim()) {
+                            case "Document Count":
+                                ci.SetCounter((float)indices["docs"]["count"]);
+                                break;
 
-                    switch (ci.name.Trim())
-                    {
+                            case "Store Size [byte]":
+                                ci.SetCounter((float)indices["store"]["size_in_bytes"]);
+                                break;
 
-                        case "Document Count":
-                            ci.SetCounter((float)indices["docs"]["count"]);
-                            break;
+                            case "Index Total":
+                                ci.SetCounter((float)indices["indexing"]["index_total"]);
+                                break;
 
-                        case "Store Size [byte]":
-                            ci.SetCounter((float)indices["store"]["size_in_bytes"]);
-                            break;
+                            case "Index Time [ms]":
+                                ci.SetCounter((float)indices["indexing"]["index_time_in_millis"]);
+                                break;
 
-                        case "Index Total":
-                            ci.SetCounter((float)indices["indexing"]["index_total"]);
-                            break;
+                            case "Search Open Contexts":
+                                ci.SetCounter((float)indices["search"]["open_contexts"]);
+                                break;
 
-                        case "Index Time [ms]":
-                            ci.SetCounter((float)indices["indexing"]["index_time_in_millis"]);
-                            break;
+                            case "Search Query Total":
+                                ci.SetCounter((float)indices["search"]["query_total"]);
+                                break;
 
-                        case "Search Open Contexts":
-                            ci.SetCounter((float)indices["search"]["open_contexts"]);
-                            break;
+                            case "Search Query Current":
+                                ci.SetCounter((float)indices["search"]["query_current"]);
+                                break;
 
-                        case "Search Query Total":
-                            ci.SetCounter((float)indices["search"]["query_total"]);
-                            break;
+                            case "Search Fetch Total":
+                                ci.SetCounter((float)indices["search"]["fetch_total"]);
+                                break;
 
-                        case "Search Query Current":
-                            ci.SetCounter((float)indices["search"]["query_current"]);
-                            break;
+                            case "Search Fetch Current":
+                                ci.SetCounter((float)indices["search"]["fetch_current"]);
+                                break;
 
-                        case "Search Fetch Total":
-                            ci.SetCounter((float)indices["search"]["fetch_total"]);
-                            break;
+                            case "Merges Current":
+                                ci.SetCounter((float)indices["merges"]["current"]);
+                                break;
 
-                        case "Search Fetch Current":
-                            ci.SetCounter((float)indices["search"]["fetch_current"]);
-                            break;
+                            case "Merges Current Docs":
+                                ci.SetCounter((float)indices["merges"]["current_docs"]);
+                                break;
 
-                        case "Merges Current":
-                            ci.SetCounter((float)indices["merges"]["current"]);
-                            break;
+                            case "Merges Current Size [byte]":
+                                ci.SetCounter((float)indices["merges"]["current_size_in_bytes"]);
+                                break;
 
-                        case "Merges Current Docs":
-                            ci.SetCounter((float)indices["merges"]["current_docs"]);
-                            break;
+                            case "Merges Total":
+                                ci.SetCounter((float)indices["merges"]["total"]);
+                                break;
 
-                        case "Merges Current Size [byte]":
-                            ci.SetCounter((float)indices["merges"]["current_size_in_bytes"]);
-                            break;
+                            case "Merges Time [ms]":
+                                ci.SetCounter((float)indices["merges"]["total_time_in_millis"]);
+                                break;
 
-                        case "Merges Total":
-                            ci.SetCounter((float)indices["merges"]["total"]);
-                            break;
+                            case "Merges Total Docs":
+                                ci.SetCounter((float)indices["merges"]["total_docs"]);
+                                break;
 
-                        case "Merges Time [ms]":
-                            ci.SetCounter((float)indices["merges"]["total_time_in_millis"]);
-                            break;
+                            case "Filter Cache Size in Memory [byte]":
+                                ci.SetCounter((float)indices["filter_cache"]["memory_size_in_bytes"]);
+                                break;
 
-                        case "Merges Total Docs":
-                            ci.SetCounter((float)indices["merges"]["total_docs"]);
-                            break;
+                            case "Segment Count":
+                                ci.SetCounter((float)indices["segments"]["count"]);
+                                break;
 
-                        case "Filter Cache Size in Memory [byte]":
-                            ci.SetCounter((float)indices["filter_cache"]["memory_size_in_bytes"]);
-                            break;
+                            case "Segment Memory in Bytes":
+                                ci.SetCounter((float)indices["segments"]["memory_in_bytes"]);
+                                break;
 
-                        case "Segment Count":
-                            ci.SetCounter((float)indices["segments"]["count"]);
-                            break;
+                            case "Open File Descriptors":
+                                ci.SetCounter((float)stats["process"]["open_file_descriptors"]);
+                                break;
 
-                        case "Segment Memory in Bytes":
-                            ci.SetCounter((float)indices["segments"]["memory_in_bytes"]);
-                            break;
+                            case "JVM Heap Used [byte]":
+                                ci.SetCounter((float)jvm["mem"]["heap_used_in_bytes"]);
+                                break;
 
-                        case "Open File Descriptors":
-                            ci.SetCounter((float)stats["process"]["open_file_descriptors"]);
-                            break;
+                            case "JVM Heap Used [%]":
+                                ci.SetCounter((float)jvm["mem"]["heap_used_percent"]);
+                                break;
 
-                        case "JVM Heap Used [byte]":
-                            ci.SetCounter((float)jvm["mem"]["heap_used_in_bytes"]);
-                            break;
+                            case "JVM Heap Max [byte]":
+                                ci.SetCounter((float)jvm["mem"]["heap_max_in_bytes"]);
+                                break;
 
-                        case "JVM Heap Used [%]":
-                            ci.SetCounter((float)jvm["mem"]["heap_used_percent"]);
-                            break;
+                            case "JVM Thread Count":
+                                ci.SetCounter((float)jvm["threads"]["count"]);
+                                break;
 
-                        case "JVM Heap Max [byte]":
-                            ci.SetCounter((float)jvm["mem"]["heap_max_in_bytes"]);
-                            break;
+                            case "JVM Thread Count Peak":
+                                ci.SetCounter((float)jvm["threads"]["peak_count"]);
+                                break;
 
-                        case "JVM Thread Count":
-                            ci.SetCounter((float)jvm["threads"]["count"]);
-                            break;
+                            case "HTTP Open Connections":
+                                ci.SetCounter((float)stats["http"]["current_open"]);
+                                break;
 
-                        case "JVM Thread Count Peak":
-                            ci.SetCounter((float)jvm["threads"]["peak_count"]);
-                            break;
-
-                        case "HTTP Open Connections":
-                            ci.SetCounter((float)stats["http"]["current_open"]);
-                            break;
-
-                        case "HTTP Total Opened":
-                            ci.SetCounter((float)stats["http"]["total_opened"]);
-                            break;
+                            case "HTTP Total Opened":
+                                ci.SetCounter((float)stats["http"]["total_opened"]);
+                                break;
+                            default:
+                                ci.SetCounter(-1f);
+                                break;
+                        }
                     }
-                }
+                    catch {
+                        ci.SetCounter(-1f);
+                    }
             }
 
             base._wiwWithCounters.SetTimestamp();

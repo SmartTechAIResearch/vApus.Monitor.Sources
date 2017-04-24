@@ -19,6 +19,9 @@ namespace vApus.Monitor.Sources.Base {
     /// The socket communicates over TCP, but this can be changed if you want to.
     /// </summary>
     public abstract class BaseClient : IClient {
+        /// <summary>
+        /// 
+        /// </summary>
         public event EventHandler<OnMonitorEventArgs> OnMonitor;
 
         #region Fields
@@ -137,8 +140,7 @@ namespace vApus.Monitor.Sources.Base {
         /// The number of values cannot be greater than the number of parameters.
         /// The type of the values must be the same as the type of the default values in the parameters.
         /// </summary>
-        /// <param name="value1"></param>
-        /// <param name="otherValues"></param>
+        /// <param name="values"></param>
         public void SetParameterValues(params object[] values) {
             if (values.Length > _parameters.Length)
                 throw new Exception("The number of values is greater than the number of parameters.");

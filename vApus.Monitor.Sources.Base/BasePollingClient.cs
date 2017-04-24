@@ -16,7 +16,9 @@ namespace vApus.Monitor.Sources.Base {
     /// Has a timer that reports on another thread.
     /// </summary>
     public abstract class BasePollingClient : BaseClient {
-        //For functionality testing.
+        /// <summary>
+        /// For functionality testing.
+        /// </summary>
         protected AutoResetEvent _sleepWaitHandle = new AutoResetEvent(false);
 
         /// <summary>
