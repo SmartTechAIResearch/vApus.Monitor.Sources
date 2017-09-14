@@ -22,7 +22,7 @@ namespace vApus.Monitor.Sources.LocalWMI {
         public string GetHardwareInfo() {
             CultureInfo prevCulture = Thread.CurrentThread.CurrentCulture;
             Thread.CurrentThread.CurrentCulture = Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
-            
+
             var systemInformation = new SystemInformation();
             if (!systemInformation.Get())
                 throw new Exception("Failed to get the hardware info.");
@@ -31,9 +31,9 @@ namespace vApus.Monitor.Sources.LocalWMI {
             // get all public instance properties
             PropertyInfo[] propertyInfos = typeof(SystemInformation).GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
-            foreach (PropertyInfo propInfo in propertyInfos) 
+            foreach (PropertyInfo propInfo in propertyInfos)
                 dic.Add(propInfo.Name.Replace('_', ' '), propInfo.GetValue(systemInformation, null).ToString().Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries));
-                
+
             Thread.CurrentThread.CurrentCulture = prevCulture;
 
             return JsonConvert.SerializeObject(dic);
@@ -50,32 +50,12 @@ namespace vApus.Monitor.Sources.LocalWMI {
             PerformanceCounterCategory[] categories = PerformanceCounterCategory.GetCategories();
             Array.Sort(categories, PerformanceCounterCategoryComparer.GetInstance());
             foreach (PerformanceCounterCategory category in categories) {
-                string[] instances = category.GetInstanceNames();
-                Array.Sort(instances);
+                try {
+                    string[] instances = category.GetInstanceNames();
+                    Array.Sort(instances);
 
-                if (instances.Length == 0) {
-                    PerformanceCounter[] counters = GetCounters(category);
-                    if (counters != null)
-                        foreach (PerformanceCounter counter in counters) {
-                            //Cleanup invalid counter
-                            if (counter.CounterName.Equals("No name", StringComparison.InvariantCultureIgnoreCase))
-                                continue;
-                            //try { counter.NextValue(); } catch { continue; } Too slow
-
-                            string counterInfoName = category.CategoryName + "." + counter.CounterName;
-                            var counterInfo = new CounterInfo(counterInfoName);
-
-                            counterInfo.GetSubs().Add(new CounterInfo(defaultInstance));
-
-                            string name = counterInfoName + "." + defaultInstance;
-                            if (!_performanceCounters.ContainsKey(name))
-                                _performanceCounters.Add(name, counter);
-
-                            entity.GetSubs().Add(counterInfo);
-                        }
-                } else {
-                    foreach (string instance in instances) {
-                        PerformanceCounter[] counters = GetCounters(category, instance);
+                    if (instances.Length == 0) {
+                        PerformanceCounter[] counters = GetCounters(category);
                         if (counters != null)
                             foreach (PerformanceCounter counter in counters) {
                                 //Cleanup invalid counter
@@ -84,20 +64,46 @@ namespace vApus.Monitor.Sources.LocalWMI {
                                 //try { counter.NextValue(); } catch { continue; } Too slow
 
                                 string counterInfoName = category.CategoryName + "." + counter.CounterName;
-                                CounterInfo counterInfo = entity.GetSubs().Find(item => item.GetName() == counterInfoName);
+                                var counterInfo = new CounterInfo(counterInfoName);
 
-                                string name = counterInfoName + "." + instance;
-                                if (!_performanceCounters.ContainsKey(name)) {
-                                    if (counterInfo == null) {
-                                        counterInfo = new CounterInfo(counterInfoName);
-                                        entity.GetSubs().Add(counterInfo);
-                                    }
+                                counterInfo.GetSubs().Add(new CounterInfo(defaultInstance));
 
+                                string name = counterInfoName + "." + defaultInstance;
+                                if (!_performanceCounters.ContainsKey(name))
                                     _performanceCounters.Add(name, counter);
-                                    counterInfo.GetSubs().Add(new CounterInfo(instance));
-                                }
+
+                                entity.GetSubs().Add(counterInfo);
                             }
                     }
+                    else {
+                        foreach (string instance in instances) {
+                            PerformanceCounter[] counters = GetCounters(category, instance);
+                            if (counters != null)
+                                foreach (PerformanceCounter counter in counters) {
+                                    //Cleanup invalid counter
+                                    if (counter.CounterName.Equals("No name", StringComparison.InvariantCultureIgnoreCase))
+                                        continue;
+                                    //try { counter.NextValue(); } catch { continue; } Too slow
+
+                                    string counterInfoName = category.CategoryName + "." + counter.CounterName;
+                                    CounterInfo counterInfo = entity.GetSubs().Find(item => item.GetName() == counterInfoName);
+
+                                    string name = counterInfoName + "." + instance;
+                                    if (!_performanceCounters.ContainsKey(name)) {
+                                        if (counterInfo == null) {
+                                            counterInfo = new CounterInfo(counterInfoName);
+                                            entity.GetSubs().Add(counterInfo);
+                                        }
+
+                                        _performanceCounters.Add(name, counter);
+                                        counterInfo.GetSubs().Add(new CounterInfo(instance));
+                                    }
+                                }
+                        }
+                    }
+                }
+                catch {
+                    continue;
                 }
             }
 
@@ -112,7 +118,8 @@ namespace vApus.Monitor.Sources.LocalWMI {
             try {
                 counters = instance == null ? category.GetCounters() : category.GetCounters(instance);
                 Array.Sort(counters, PerformanceCounterComparer.GetInstance());
-            } catch {
+            }
+            catch {
                 //Temp counter
             }
             return counters;
@@ -128,7 +135,8 @@ namespace vApus.Monitor.Sources.LocalWMI {
             if (_performanceCounters.ContainsKey(name))
                 try {
                     return _performanceCounters[name].NextValue();
-                } catch {
+                }
+                catch {
                     _performanceCounters.Remove(name);
                 }
             return -1f;
