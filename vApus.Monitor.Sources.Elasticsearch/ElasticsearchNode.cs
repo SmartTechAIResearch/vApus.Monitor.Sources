@@ -17,13 +17,17 @@ namespace vApus.Monitor.Sources.Elasticsearch {
         private bool _connected = false;
 
         private JsonValue GetJSONObject(string url) {
+            return JsonObject.Parse(GetBody(url));
+        }
+
+        private string GetBody(string url) {
             url = "http://" + _hostname + ":" + _port + "/" + url;
             WebRequest req = WebRequest.CreateHttp(url);
             req.Timeout = 5000;
             req.Proxy = null;
             using (WebResponse res = req.GetResponse()) {
                 using (StreamReader reader = new StreamReader(res.GetResponseStream()))
-                    return JsonObject.Parse(reader.ReadToEnd());
+                    return reader.ReadToEnd();
             }
         }
 
@@ -90,32 +94,40 @@ namespace vApus.Monitor.Sources.Elasticsearch {
         public List<CounterInfo> GetCountersForEntity(string ename) {
             return new List<CounterInfo>
             {
+                new CounterInfo("Master ID"),
+                new CounterInfo("Master Hostname"),
+                new CounterInfo("Master IP"),
+                new CounterInfo("Master Nodename"),
                 new CounterInfo("Document Count"),
-                new CounterInfo("Store Size [byte]"),
+                new CounterInfo("GC Collectors Old Collection Count"),
+                new CounterInfo("GC Collectors Old Collection Time in Millis"),
+                new CounterInfo("GC Collectors Young Collection Count"),
+                new CounterInfo("GC Collectors Young Collection Time in Millis"),
+                new CounterInfo("HTTP Open Connections"),
+                new CounterInfo("HTTP Total Opened"),
+                new CounterInfo("Open File Descriptors"),
                 new CounterInfo("Index Total"),
                 new CounterInfo("Index Time [ms]"),
-                new CounterInfo("Search Open Contexts"),
-                new CounterInfo("Search Query Total"),
-                new CounterInfo("Search Query Current"),
-                new CounterInfo("Search Fetch Total"),
-                new CounterInfo("Search Fetch Current"),
-                new CounterInfo("Merges Current"),
-                new CounterInfo("Merges Current Docs"),
-                new CounterInfo("Merges Current Size [byte]"),
-                new CounterInfo("Merges Total"),
-                new CounterInfo("Merges Time [ms]"),
-                new CounterInfo("Merges Total Docs"),
-                new CounterInfo("Query Cache Size in Memory [byte]"),
-                new CounterInfo("Segment Count"),
-                new CounterInfo("Segment Memory in Bytes"),
-                new CounterInfo("Open File Descriptors"),
                 new CounterInfo("JVM Heap Used [byte]"),
                 new CounterInfo("JVM Heap Used [%]"),
                 new CounterInfo("JVM Heap Max [byte]"),
                 new CounterInfo("JVM Thread Count"),
                 new CounterInfo("JVM Thread Count Peak"),
-                new CounterInfo("HTTP Open Connections"),
-                new CounterInfo("HTTP Total Opened")
+                new CounterInfo("Merges Current"),
+                new CounterInfo("Merges Current Docs"),
+                new CounterInfo("Merges Current Size [byte]"),
+                new CounterInfo("Merges Time [ms]"),
+                new CounterInfo("Merges Total"),
+                new CounterInfo("Merges Total Docs"),
+                new CounterInfo("Query Cache Size in Memory [byte]"),
+                new CounterInfo("Search Fetch Total"),
+                new CounterInfo("Search Fetch Current"),
+                new CounterInfo("Search Open Contexts"),
+                new CounterInfo("Search Query Current"),
+                new CounterInfo("Search Query Total"),
+                new CounterInfo("Segment Count"),
+                new CounterInfo("Segment Memory in Bytes"),
+                new CounterInfo("Store Size [byte]")
             };
         }
 
@@ -135,43 +147,38 @@ namespace vApus.Monitor.Sources.Elasticsearch {
                     base._wdyh = dic;
                 }
 
-                //     dic.Add(e, GetCountersForEntity(e.GetName()));
-
-
 
                 return base._wdyh;
             }
         }
 
-        /* public override Parameter[] Parameters
-         {
-             get
-             {
-                 return new Parameter[]
-                 {
-                     new Parameter("IP", "WHERE ELASTISEARCh", typeof(string), false, "hp-g8.sslab.lan", false),
-                     new Parameter("Port", "WHAT NUMBER", typeof(int), false, 9200, false)
-                 };
-             }
-         }*/
-
-
-
-
         protected override Entities PollCounters() {
             if (base._wiwWithCounters == null)
                 base._wiwWithCounters = base._wiw.Clone();
 
-            JsonValue jv = GetJSONObject("_nodes/stats")["nodes"];
+            JsonValue jvStats = GetJSONObject("_nodes/stats")["nodes"];
+            string[] jvMaster = GetBody("_cat/master").Split(' ');
 
             foreach (Entity e in base._wiwWithCounters.GetSubs()) {
-                var stats = jv[e.GetName().Substring(e.GetName().IndexOf('(') - +2).Replace(")", "").Replace("(", "").Replace("\"", "").Trim()];
+                var stats = jvStats[e.GetName().Substring(e.GetName().IndexOf('(') - +2).Replace(")", "").Replace("(", "").Replace("\"", "").Trim()];
                 var indices = stats["indices"];
                 var jvm = stats["jvm"];
 
                 foreach (CounterInfo ci in e.GetSubs())
                     try {
                         switch (ci.name.Trim()) {
+                            case "Master ID":
+                                ci.SetCounter(jvMaster[0]);
+                                break;
+                            case "Master Hostname":
+                                ci.SetCounter(jvMaster[1]);
+                                break;
+                            case "Master IP":
+                                ci.SetCounter(jvMaster[2]);
+                                break;
+                            case "Master Nodename":
+                                ci.SetCounter(jvMaster[3]);
+                                break;
                             case "Document Count":
                                 ci.SetCounter((float)indices["docs"]["count"]);
                                 break;
@@ -274,6 +281,18 @@ namespace vApus.Monitor.Sources.Elasticsearch {
 
                             case "HTTP Total Opened":
                                 ci.SetCounter((float)stats["http"]["total_opened"]);
+                                break;
+                            case "GC Collectors Old Collection Count":
+                                ci.SetCounter((float)jvm["gc"]["collectors"]["old"]["collection_count"]);
+                                break;
+                            case "GC Collectors Old Collection Time in Millis":
+                                ci.SetCounter((float)jvm["gc"]["collectors"]["old"]["collection_time_in_millis"]);
+                                break;
+                            case "GC Collectors Young Collection Count":
+                                ci.SetCounter((float)jvm["gc"]["collectors"]["young"]["collection_count"]);
+                                break;
+                            case "GC Collectors Young Collection Time in Millis":
+                                ci.SetCounter((float)jvm["gc"]["collectors"]["young"]["collection_time_in_millis"]);
                                 break;
                             default:
                                 ci.SetCounter(-1f);
