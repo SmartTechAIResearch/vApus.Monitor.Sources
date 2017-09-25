@@ -1,18 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using vApus.Monitor.Sources.Base;
-using System.Net;
+using System.Data;
+using System.Globalization;
 using System.IO;
 using System.Json;
-using System.Globalization;
+using System.Net;
+using vApus.Monitor.Sources.Base;
 
 namespace vApus.Monitor.Sources.Elasticsearch {
     public class ElasticsearchNode : BasePollingClient {
         private string _hostname;
         private string _port;
+
+        private string _jvMaster;
+        private string _jvShards;
+
 
         private bool _connected = false;
 
@@ -47,7 +49,7 @@ namespace vApus.Monitor.Sources.Elasticsearch {
 
         public override string Config {
             get {
-                return "<NotReallyAConfig></NotReallyAConfig>";
+                return "<List>Master\n" + _jvMaster + "\n\nShards\n" + _jvShards + "</List>";
             }
         }
 
@@ -57,13 +59,10 @@ namespace vApus.Monitor.Sources.Elasticsearch {
 
                 foreach (var x in GetJSONObject("_nodes/stats")["nodes"])
                     entities.GetSubs().Add(new Entity(x.Value["name"].ToString() + " (" + x.Key + ")", true));
-                //    entities.Add(new Entity(x.Value["name"].ToString(), vApusSMT.Base.PowerState.On));
-
 
                 return entities;
             }
         }
-
         public override bool Connect() {
             //    InitConnect();
             _hostname = (string)base.GetParameter("Hostname").Value;
@@ -71,6 +70,10 @@ namespace vApus.Monitor.Sources.Elasticsearch {
 
             try {
                 var entities = Entities;
+
+                _jvMaster = GetBody("_cat/master?v=pretty");
+                _jvShards = GetBody("_cat/shards?v=pretty");
+
                 _connected = true;
             }
             catch {
@@ -90,9 +93,17 @@ namespace vApus.Monitor.Sources.Elasticsearch {
                 return false;
             }
         }
+        /*
+                         new CounterInfo("Shard ID"),
+                new CounterInfo("Shard State"),
+                new CounterInfo("Shard Docs"),
+                new CounterInfo("Shard Store"),
+                new CounterInfo("Shard IP"),
+                new CounterInfo("Shard Nodename"),
+             */
 
-        public List<CounterInfo> GetCountersForEntity(string ename) {
-            return new List<CounterInfo>
+        private List<CounterInfo> GetCountersForEntity() {
+            var l = new List<CounterInfo>
             {
                 new CounterInfo("Master ID"),
                 new CounterInfo("Master Hostname"),
@@ -129,6 +140,72 @@ namespace vApus.Monitor.Sources.Elasticsearch {
                 new CounterInfo("Segment Memory in Bytes"),
                 new CounterInfo("Store Size [byte]")
             };
+
+
+
+
+            var shardCI = new CounterInfo("Shards");
+            //foreach (string line in lines) {
+
+                //string shardId = 
+            //}
+
+            return l;
+        }
+
+        //            _jvShards = GetBody("_cat/shards?v=pretty");
+
+        private CounterInfo JvShardsToDatatable(bool addValue) {
+            var shardCI = new CounterInfo("Shards");
+
+            var columns = _jvShards.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            var columnsWithCells = new List<string[]>();
+            int rows = 0;
+
+            for (int i = 0; i != columns.Length; i++) {
+                string[] cells = columns[i].Split('\n');
+                columnsWithCells.Add(cells);
+                rows = cells.Length;
+            }
+
+            for (int i = 1; i != rows; i++) {
+
+                string id = columnsWithCells[0][i] + "_" + columnsWithCells[1][i] + "_" + columnsWithCells[2][i];
+                var state = new CounterInfo(id + "_State");
+                var docs = new CounterInfo(id + "_Docs");
+                var store = new CounterInfo(id + "_Store");
+                var ip = new CounterInfo(id + "_IP");
+                var node = new CounterInfo(id + "_Node");
+                
+                shardCI.GetSubs().Add(state);
+                shardCI.GetSubs().Add(docs);
+                shardCI.GetSubs().Add(store);
+                shardCI.GetSubs().Add(ip);
+                shardCI.GetSubs().Add(node);
+
+                if (addValue) {
+                    state.SetCounter(columnsWithCells[3][i]);
+                    string d = columnsWithCells[4][i];
+                    if (string.IsNullOrWhiteSpace(d)) {
+                        d = "-1";
+                    }
+                    docs.SetCounter(double.Parse(d));
+
+                    string s = columnsWithCells[5][i];
+                    if (string.IsNullOrWhiteSpace(s)) {
+                        s = "-1";
+                    }
+                    store.SetCounter(s);
+                    ip.SetCounter(columnsWithCells[6][i]);
+                    node.SetCounter(columnsWithCells[7][i]);
+                }
+            }
+
+            for (int i = 0; i != columnsWithCells.Count; i++) {
+
+            }
+
+            return shardCI;
         }
 
         public override Entities WDYH {
@@ -138,9 +215,8 @@ namespace vApus.Monitor.Sources.Elasticsearch {
 
                     Entities dic = new Entities();
 
-
                     foreach (Entity e in Entities.GetSubs()) {
-                        e.subs = GetCountersForEntity("~* Ponyaaier 5000 *~");
+                        e.subs = GetCountersForEntity();
                         dic.GetSubs().Add(e);
                     }
 
@@ -152,12 +228,22 @@ namespace vApus.Monitor.Sources.Elasticsearch {
             }
         }
 
+        /*
+                         new CounterInfo("Shard ID"),
+                new CounterInfo("Shard State"),
+                new CounterInfo("Shard Docs"),
+                new CounterInfo("Shard Store"),
+                new CounterInfo("Shard IP"),
+                new CounterInfo("Shard Nodename"),
+             */
+
         protected override Entities PollCounters() {
             if (base._wiwWithCounters == null)
                 base._wiwWithCounters = base._wiw.Clone();
 
             JsonValue jvStats = GetJSONObject("_nodes/stats")["nodes"];
             string[] jvMaster = GetBody("_cat/master").Split(' ');
+            string[] jvShards = GetBody("_cat/shards").Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (Entity e in base._wiwWithCounters.GetSubs()) {
                 var stats = jvStats[e.GetName().Substring(e.GetName().IndexOf('(') - +2).Replace(")", "").Replace("(", "").Replace("\"", "").Trim()];
@@ -167,6 +253,9 @@ namespace vApus.Monitor.Sources.Elasticsearch {
                 foreach (CounterInfo ci in e.GetSubs())
                     try {
                         switch (ci.name.Trim()) {
+                            //case "Shard ID":
+                            //    ci.SetCounter(jvShards);
+                            //    break;
                             case "Master ID":
                                 ci.SetCounter(jvMaster[0]);
                                 break;
