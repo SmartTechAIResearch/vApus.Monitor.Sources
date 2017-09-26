@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Json;
@@ -14,7 +13,6 @@ namespace vApus.Monitor.Sources.Elasticsearch {
 
         private string _jvMaster;
         private string _jvShards;
-
 
         private bool _connected = false;
 
@@ -49,7 +47,10 @@ namespace vApus.Monitor.Sources.Elasticsearch {
 
         public override string Config {
             get {
-                return "<List>Master\n" + _jvMaster + "\n\nShards\n" + _jvShards + "</List>";
+                _jvMaster = GetBody("_cat/master?v=pretty");
+                _jvShards = GetBody("_cat/shards?v=pretty");
+
+                return "Master\n" + _jvMaster + "\n\nShards\n" + _jvShards;
             }
         }
 
@@ -93,14 +94,6 @@ namespace vApus.Monitor.Sources.Elasticsearch {
                 return false;
             }
         }
-        /*
-                         new CounterInfo("Shard ID"),
-                new CounterInfo("Shard State"),
-                new CounterInfo("Shard Docs"),
-                new CounterInfo("Shard Store"),
-                new CounterInfo("Shard IP"),
-                new CounterInfo("Shard Nodename"),
-             */
 
         private List<CounterInfo> GetCountersForEntity() {
             var l = new List<CounterInfo>
@@ -141,68 +134,60 @@ namespace vApus.Monitor.Sources.Elasticsearch {
                 new CounterInfo("Store Size [byte]")
             };
 
-
-
-
-            var shardCI = new CounterInfo("Shards");
-            //foreach (string line in lines) {
-
-                //string shardId = 
-            //}
+            l.AddRange(JvShardsToCounterInfos(false));
 
             return l;
         }
 
-        //            _jvShards = GetBody("_cat/shards?v=pretty");
+        private List<CounterInfo> JvShardsToCounterInfos(bool addValue) {
+            var shardCI = new List<CounterInfo>();
 
-        private CounterInfo JvShardsToDatatable(bool addValue) {
-            var shardCI = new CounterInfo("Shards");
+            var lines = _jvShards.Trim().Split('\n');
+            var grid = new string[lines.Length - 1, 6];
+            int rows = lines.Length - 1;
 
-            var columns = _jvShards.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            var columnsWithCells = new List<string[]>();
-            int rows = 0;
+            for (int line = 1; line < lines.Length; line++) {
+                string[] cells = lines[line].Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-            for (int i = 0; i != columns.Length; i++) {
-                string[] cells = columns[i].Split('\n');
-                columnsWithCells.Add(cells);
-                rows = cells.Length;
+                int r = line - 1;
+                grid[r, 0] = "Shard_" + cells[0] + "_" + cells[1] + "_" + cells[2];
+                grid[r, 1] = cells[3];
+
+                if (cells.Length == 8) {
+                    grid[r, 2] = cells[4];
+                    grid[r, 3] = cells[5];
+                    grid[r, 4] = cells[6];
+                    grid[r, 5] = cells[7].Trim();
+                }
+                else {
+                    grid[r, 2] = "-1";
+                    grid[r, 3] = "-1";
+                    grid[r, 4] = cells[4];
+                    grid[r, 5] = cells[5].Trim();
+                }
             }
 
-            for (int i = 1; i != rows; i++) {
-
-                string id = columnsWithCells[0][i] + "_" + columnsWithCells[1][i] + "_" + columnsWithCells[2][i];
+            for (int i = 0; i != rows; i++) {
+                string id = grid[i, 0];
                 var state = new CounterInfo(id + "_State");
                 var docs = new CounterInfo(id + "_Docs");
                 var store = new CounterInfo(id + "_Store");
                 var ip = new CounterInfo(id + "_IP");
                 var node = new CounterInfo(id + "_Node");
-                
-                shardCI.GetSubs().Add(state);
-                shardCI.GetSubs().Add(docs);
-                shardCI.GetSubs().Add(store);
-                shardCI.GetSubs().Add(ip);
-                shardCI.GetSubs().Add(node);
 
                 if (addValue) {
-                    state.SetCounter(columnsWithCells[3][i]);
-                    string d = columnsWithCells[4][i];
-                    if (string.IsNullOrWhiteSpace(d)) {
-                        d = "-1";
-                    }
-                    docs.SetCounter(double.Parse(d));
-
-                    string s = columnsWithCells[5][i];
-                    if (string.IsNullOrWhiteSpace(s)) {
-                        s = "-1";
-                    }
-                    store.SetCounter(s);
-                    ip.SetCounter(columnsWithCells[6][i]);
-                    node.SetCounter(columnsWithCells[7][i]);
+                    state.SetCounter(grid[i, 1]);
+                    docs.SetCounter(grid[i, 2]);
+                    store.SetCounter(grid[i, 3]);
+                    ip.SetCounter(grid[i, 4]);
+                    node.SetCounter(grid[i, 5]);
                 }
-            }
 
-            for (int i = 0; i != columnsWithCells.Count; i++) {
-
+                shardCI.Add(state);
+                shardCI.Add(docs);
+                shardCI.Add(store);
+                shardCI.Add(ip);
+                shardCI.Add(node);
             }
 
             return shardCI;
@@ -228,22 +213,15 @@ namespace vApus.Monitor.Sources.Elasticsearch {
             }
         }
 
-        /*
-                         new CounterInfo("Shard ID"),
-                new CounterInfo("Shard State"),
-                new CounterInfo("Shard Docs"),
-                new CounterInfo("Shard Store"),
-                new CounterInfo("Shard IP"),
-                new CounterInfo("Shard Nodename"),
-             */
-
         protected override Entities PollCounters() {
             if (base._wiwWithCounters == null)
                 base._wiwWithCounters = base._wiw.Clone();
 
             JsonValue jvStats = GetJSONObject("_nodes/stats")["nodes"];
             string[] jvMaster = GetBody("_cat/master").Split(' ');
-            string[] jvShards = GetBody("_cat/shards").Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            _jvShards = GetBody("_cat/shards?v=pretty");
+
+            List<CounterInfo> shardscis = JvShardsToCounterInfos(true);
 
             foreach (Entity e in base._wiwWithCounters.GetSubs()) {
                 var stats = jvStats[e.GetName().Substring(e.GetName().IndexOf('(') - +2).Replace(")", "").Replace("(", "").Replace("\"", "").Trim()];
@@ -252,10 +230,19 @@ namespace vApus.Monitor.Sources.Elasticsearch {
 
                 foreach (CounterInfo ci in e.GetSubs())
                     try {
-                        switch (ci.name.Trim()) {
-                            //case "Shard ID":
-                            //    ci.SetCounter(jvShards);
-                            //    break;
+                        string ciname = ci.name.Trim();
+                        if (ciname.StartsWith("Shard_")) {
+                            if (shardscis.Exists(x => x.GetName() == ci.name)) {
+                                CounterInfo candidate = shardscis.Find(x => x.GetName() == ci.name);
+                                ci.SetCounter(candidate.GetCounter());
+                            }
+                            else {
+                                ci.SetCounter(-1);
+                            }
+                            continue;
+                        }
+
+                        switch (ciname) {
                             case "Master ID":
                                 ci.SetCounter(jvMaster[0]);
                                 break;
