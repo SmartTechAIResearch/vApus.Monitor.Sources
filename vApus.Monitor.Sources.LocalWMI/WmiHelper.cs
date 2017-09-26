@@ -13,7 +13,6 @@ using System.Globalization;
 using System.Reflection;
 using System.Threading;
 using vApus.Monitor.Sources.Base;
-using System.Linq;
 
 namespace vApus.Monitor.Sources.LocalWMI {
     public class WmiHelper {
