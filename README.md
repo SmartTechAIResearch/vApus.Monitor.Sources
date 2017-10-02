@@ -95,58 +95,58 @@ You need to reference <big>vApus.Monitor.Sources.Base.dll</big> and put the Moni
 
 * Iterate and list the monitor source clients.
 
-      Dictionary<string, Type> clients = ClientFactory.Clients;
-      foreach (string key in clients.Keys) { 
-        using(IClient client = ClientFactory.Create(client[key])) {
+        Dictionary<string, Type> clients = ClientFactory.Clients;
+        foreach (string key in clients.Keys) { 
+          using(IClient client = ClientFactory.Create(client[key])) {
  
-         // Add client to GUI. Show IClient.Name, .Description and Parameters. Store the type, so there is only one client created when monitoring; The temporarily clients are nicely disposed.
-         // You can get the default value types of the parameters if you like for e.g. vizualization in custom controls (A checkbox for a boolean). Default values can be pre-filled in.
+           // Add client to GUI. Show IClient.Name, .Description and Parameters. Store the type, so there is only one client created when monitoring; The temporarily clients are nicely disposed.
+           // You can get the default value types of the parameters if you like for e.g. vizualization in custom controls (A checkbox for a boolean). Default values can be pre-filled in.
  
-         var defaultValueTypes = new Type[client.Parameters.Length];
-         for (int i = 0; i != client.Parameters.Length; i++)
-          defaultValueTypes[i] = client.Parameters[i].DefaultValue.GetType();
+           var defaultValueTypes = new Type[client.Parameters.Length];
+           for (int i = 0; i != client.Parameters.Length; i++)
+            defaultValueTypes[i] = client.Parameters[i].DefaultValue.GetType();
  
-         // ...
+           // ...
  
+          }
         }
-      }
 
 * Connect to a client with the given parameter values and get the hardware config (Should be XML or N/A), refresh counters interval, decimal seperator and available counters (wdyh).
 
-      IClient client = ClientFactory.Create(client[key]);
+        IClient client = ClientFactory.Create(client[key]);
  
-      client.GetParameter("parameter name").Value = "Foo";
-      // OR
-      client.SetParameterValues("Foo", "Bar", "..."); // Order is important.
-  
-      string config = null, decimalSeparator = null;
-      int refreshCountersInterval = -1;
-      Entities wdyh = null;
-      // OR
-      string wdyhRepresentation = null; // Json serialized available counters.
- 
-      if(client.Connect()) {
-        config = client.Config;
-        refreshCountersInterval = client.RefreshCountersInterval;
-        decimalSeparator = client.DecimalSeparator;
-        wdyh = client.WDYH;
+        client.GetParameter("parameter name").Value = "Foo";
         // OR
-        wdyhRepresentation = client.WDYHRepresentation;
-      }
+        client.SetParameterValues("Foo", "Bar", "..."); // Order is important.
+  
+        string config = null, decimalSeparator = null;
+        int refreshCountersInterval = -1;
+        Entities wdyh = null;
+        // OR
+        string wdyhRepresentation = null; // Json serialized available counters.
+ 
+        if(client.Connect()) {
+          config = client.Config;
+          refreshCountersInterval = client.RefreshCountersInterval;
+          decimalSeparator = client.DecimalSeparator;
+          wdyh = client.WDYH;
+          // OR
+          wdyhRepresentation = client.WDYHRepresentation;
+        }
 
 * Set the counters that you want to monitor and start. Do not forget to subscribe to the OnMonitor event. 
  
-      client.WIW = Foo;
-      // OR
-      client.WIWRepresentation = "Foo";
+        client.WIW = Foo;
+        // OR
+        client.WIWRepresentation = "Foo";
  
-      client.OnMonitor += client_OnMonitor;
+        client.OnMonitor += client_OnMonitor;
  
-      client.Start();
+        client.Start();
  
-      private void client_OnMonitor(object sender, OnMonitorEventArgs e) {
-        // Vizualize e.Counters (Entities with filled in counter values).
-      }
+        private void client_OnMonitor(object sender, OnMonitorEventArgs e) {
+          // Vizualize e.Counters (Entities with filled in counter values).
+        }
 
 * Stop /  Disconnect / Dispose / Unsuscribe from OnMonitor
 
