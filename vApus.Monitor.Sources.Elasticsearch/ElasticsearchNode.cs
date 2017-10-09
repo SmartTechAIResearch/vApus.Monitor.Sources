@@ -31,7 +31,7 @@ namespace vApus.Monitor.Sources.Elasticsearch {
             req.Timeout = 5000;
             req.Proxy = null;
 
-            if (!string.IsNullOrEmpty(_ecUser) && !string.IsNullOrEmpty(_ecPassword))
+            if (!string.IsNullOrEmpty(_ecBase64Credentials))
                 req.Headers.Add("Authorization", _ecBase64Credentials);
 
             using (WebResponse res = req.GetResponse()) {
@@ -84,7 +84,8 @@ namespace vApus.Monitor.Sources.Elasticsearch {
             _ecUser = (string)base.GetParameter("Elastic Cloud user").Value;
             _ecPassword = (string)base.GetParameter("Elastic Cloud password").Value;
 
-            _ecBase64Credentials = "Basic " + Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(_ecUser + ":" + _ecPassword));
+            if (!string.IsNullOrEmpty(_ecUser) && !string.IsNullOrEmpty(_ecPassword))
+                _ecBase64Credentials = "Basic " + Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(_ecUser + ":" + _ecPassword));
 
             try {
                 var entities = Entities;
