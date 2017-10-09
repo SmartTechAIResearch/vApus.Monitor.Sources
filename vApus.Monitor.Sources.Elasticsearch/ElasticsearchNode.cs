@@ -1,4 +1,11 @@
-﻿using System;
+﻿/*
+ * Copyright 2016 (c) Sizing Servers Lab
+ * University College of West-Flanders, Department GKG
+ * 
+ * Author(s):
+ *    Kirth Lammens en Dieter Vandroemme
+ */
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -8,11 +15,9 @@ using vApus.Monitor.Sources.Base;
 
 namespace vApus.Monitor.Sources.Elasticsearch {
     public class ElasticsearchNode : BasePollingClient {
-        private string _hostname;
-        private string _port;
+        private string _protocol, _hostname, _port, _ecUser, _ecPassword, _ecBase64Credentials; //ec = Elastic Cloud
 
-        private string _jvMaster;
-        private string _jvShards;
+        private string _jvMaster, _jvShards;
 
         private bool _connected = false;
 
@@ -21,10 +26,14 @@ namespace vApus.Monitor.Sources.Elasticsearch {
         }
 
         private string GetBody(string url) {
-            url = "http://" + _hostname + ":" + _port + "/" + url;
+            url = _protocol + "://" + _hostname + ":" + _port + "/" + url;
             WebRequest req = WebRequest.CreateHttp(url);
             req.Timeout = 5000;
             req.Proxy = null;
+
+            if (!string.IsNullOrEmpty(_ecUser) && !string.IsNullOrEmpty(_ecPassword))
+                req.Headers.Add("Authorization", _ecBase64Credentials);
+
             using (WebResponse res = req.GetResponse()) {
                 using (StreamReader reader = new StreamReader(res.GetResponseStream()))
                     return reader.ReadToEnd();
@@ -34,8 +43,11 @@ namespace vApus.Monitor.Sources.Elasticsearch {
         public ElasticsearchNode() {
             base._parameters = new Parameter[]
             {
+                new Parameter() { Name = "Protocol", DefaultValue = "http", Description = "http or https" },
                 new Parameter() { Name = "Hostname", DefaultValue = "" },
-                new Parameter() { Name = "Port", DefaultValue = "9200" }
+                new Parameter() { Name = "Port", DefaultValue = "9200" },
+                new Parameter() { Name = "Elastic Cloud user", DefaultValue = "", Optional = true, Description = "Leave blank if you are not using Elastic Cloud." },
+                new Parameter() { Name = "Elastic Cloud password", DefaultValue = "", Optional = true, Description = "Leave blank if you are not using Elastic Cloud.", Encrypted = true }
             };
         }
 
@@ -66,8 +78,13 @@ namespace vApus.Monitor.Sources.Elasticsearch {
         }
         public override bool Connect() {
             //    InitConnect();
+            _protocol = (string)base.GetParameter("Protocol").Value;
             _hostname = (string)base.GetParameter("Hostname").Value;
             _port = (string)base.GetParameter("Port").Value;
+            _ecUser = (string)base.GetParameter("Elastic Cloud user").Value;
+            _ecPassword = (string)base.GetParameter("Elastic Cloud password").Value;
+
+            _ecBase64Credentials = "Basic " + Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(_ecUser + ":" + _ecPassword));
 
             try {
                 var entities = Entities;
@@ -159,11 +176,17 @@ namespace vApus.Monitor.Sources.Elasticsearch {
                     grid[r, 4] = cells[6];
                     grid[r, 5] = cells[7].Trim();
                 }
-                else {
+                else if (cells.Length == 6) {
                     grid[r, 2] = "-1";
                     grid[r, 3] = "-1";
                     grid[r, 4] = cells[4];
                     grid[r, 5] = cells[5].Trim();
+                }
+                else {
+                    grid[r, 2] = "-1";
+                    grid[r, 3] = "-1";
+                    grid[r, 4] = "-1";
+                    grid[r, 5] = "-1";
                 }
             }
 

@@ -21,6 +21,9 @@ namespace vApus.Monitor.Sources.Base {
         ///// For auto-generated gui.
         ///// </summary>
         //public Type Type { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
         public bool Optional { get; set; }
         /// <summary>
         /// Gets the default value if value is null.
@@ -33,6 +36,9 @@ namespace vApus.Monitor.Sources.Base {
                 _value = value;
             }
         }
+        /// <summary>
+        /// 
+        /// </summary>
         public object DefaultValue { get; set; }
         /// <summary>
         /// For passwords.

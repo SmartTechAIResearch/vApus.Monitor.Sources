@@ -19,7 +19,7 @@ Author(s):
   <!--<test client="Local WMI Client" parameters="" testCounts="1" repeats="0" />-->
   <!--<test client="Hotbox Agent Client" parameters="hotbox.sslab.lan" testCounts="1" repeats="0" />-->
   <!--<test client="HMT Agent Client" parameters="192.168.34.48" testCounts="1" repeats="3" />-->
-  <test client="Elasticsearch Node" parameters="52.178.113.193,9200" testCounts="1" repeats="0" />
+  <test client="Elasticsearch Node" parameters="https,9b193e04a8a3791a5408ef0a4a990a0a.eu-west-1.aws.found.io,9243,elastic,p05alLKM0qvfFnj9t8Csor6v" testCounts="1" repeats="0" />
   <!--<test client="IOStat Agent Client" parameters="192.168.34.48" testCounts="1" repeats="3" />-->
   <!--<test client="HDFS Name Server" parameters="bdc-01,16030" testCounts="1" repeats="1" />-->
   <!--<test client="HDFS Name Node" parameters="192.168.32.47,50070" testCounts="1" repeats="1" />-->
