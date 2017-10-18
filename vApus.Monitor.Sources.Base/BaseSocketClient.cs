@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace vApus.Monitor.Sources.Base {
@@ -25,6 +26,9 @@ namespace vApus.Monitor.Sources.Base {
         /// In ms.
         /// </summary>
         public const int CONNECTTIMEOUT = 2000;
+
+        private const string REGEX_IPV4 = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";
+        private const string REGEX_IPV6 = "^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$";
 
         private readonly ManualResetEvent _connectWaitHandle = new ManualResetEvent(true);
 
@@ -52,19 +56,28 @@ namespace vApus.Monitor.Sources.Base {
         /// </summary>
         public IPAddress[] IPAddresses {
             get {
+
                 string hostNameOrIP = GetParameter("Host Name or IP address").Value as string;
                 if (hostNameOrIP.Trim().Length == 0) throw new Exception("No IP address or hostname was given.");
 
-                List<IPAddress> ipAddresses = null;
+                var ipAddresses = new List<IPAddress>();
+                IPAddress originalIpAddress; //If the entry could not be resolved (no dns).
 
-                try {
-                    ipAddresses = new List<IPAddress>(Dns.GetHostEntry(hostNameOrIP).AddressList);
-                } catch {
-                    //If the entry could not be resolved (no dns).
-                    ipAddresses = new List<IPAddress>();
+                if (Regex.IsMatch(hostNameOrIP, REGEX_IPV4) || Regex.IsMatch(hostNameOrIP, REGEX_IPV6)) {
+                    if (IPAddress.TryParse(hostNameOrIP, out originalIpAddress))
+                        ipAddresses.Add(originalIpAddress);
+
+                    return ipAddresses.ToArray();
                 }
 
-                IPAddress originalIpAddress; //If the entry could not be resolved (no dns).
+                try {
+                    ipAddresses.AddRange(Dns.GetHostEntry(hostNameOrIP).AddressList);
+                    return ipAddresses.ToArray();
+                }
+                catch {
+                    //If the entry could not be resolved (no dns).
+                }
+
                 if (IPAddress.TryParse(hostNameOrIP, out originalIpAddress))
                     ipAddresses.Add(originalIpAddress);
 
@@ -114,7 +127,8 @@ namespace vApus.Monitor.Sources.Base {
                             _socket = socket;
                             break;
                         }
-                    } catch (Exception ex) {
+                    }
+                    catch (Exception ex) {
                         Loggers.Log(Level.Info, "Failed to connect the socket for ip address: " + ipAddress.ToString(), ex);
                     }
                 }
@@ -142,7 +156,8 @@ namespace vApus.Monitor.Sources.Base {
                     if (connectTimeout < 1) {
                         socket.Connect(_remoteEP);
                         _connectWaitHandle.Set();
-                    } else {
+                    }
+                    else {
                         //Connect async to the remote endpoint.
                         socket.BeginConnect(_remoteEP, ConnectCallback, socket);
                         //Use a timeout to connect.
@@ -151,12 +166,14 @@ namespace vApus.Monitor.Sources.Base {
                             throw new Exception("Connecting to the agent timed out.");
                     }
                     break;
-                } catch (Exception ex) {
+                }
+                catch (Exception ex) {
                     //Reuse the socket for re-trying to connect.
                     try {
                         if (socket.Connected)
                             socket.Disconnect(true);
-                    } catch {
+                    }
+                    catch {
                         //Ignore.
                     }
                     socket = new Socket(socket.AddressFamily, socket.SocketType, socket.ProtocolType);
@@ -178,7 +195,8 @@ namespace vApus.Monitor.Sources.Base {
                 var socket = ar.AsyncState as Socket;
                 if (socket.Connected)
                     socket.EndConnect(ar);
-            } catch (Exception ex) {
+            }
+            catch (Exception ex) {
                 Loggers.Log(Level.Error, "Failed to end connect the socket.", ex);
             }
             _connectWaitHandle.Set();
@@ -218,9 +236,11 @@ namespace vApus.Monitor.Sources.Base {
                     _socket.Close();
                     base._wiw = null;
                     return true;
-                } catch (Exception ex) {
+                }
+                catch (Exception ex) {
                     Loggers.Log(Level.Error, "Failed to close the connection to the agent.", ex);
-                } finally {
+                }
+                finally {
                     _socket = null;
                 }
             }
