@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.Base", "vApus.Monitor.Sources.Base\vApus.Monitor.Sources.Base.csproj", "{A7248C1C-32C9-4943-8074-9C210511C475}"
 EndProject
@@ -36,6 +36,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.HDFSNameNode", "vApus.Monitor.Sources.HDFSNameNode\vApus.Monitor.Sources.HDFSNameNode.csproj", "{1F300C5F-64C7-4E87-BEBC-7114C4E1789A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.HDFSDataNode", "vApus.Monitor.Sources.HDFSDataNode\vApus.Monitor.Sources.HDFSDataNode.csproj", "{8F6CCE5D-C414-4DAB-8CBA-98B52405C6D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.Proc.Agent", "vApus.Monitor.Sources.Proc.Agent\vApus.Monitor.Sources.Proc.Agent.csproj", "{3E5C4387-327D-4ACF-9A8E-D7D9AA899E49}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -111,6 +113,10 @@ Global
 		{8F6CCE5D-C414-4DAB-8CBA-98B52405C6D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8F6CCE5D-C414-4DAB-8CBA-98B52405C6D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8F6CCE5D-C414-4DAB-8CBA-98B52405C6D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E5C4387-327D-4ACF-9A8E-D7D9AA899E49}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E5C4387-327D-4ACF-9A8E-D7D9AA899E49}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E5C4387-327D-4ACF-9A8E-D7D9AA899E49}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E5C4387-327D-4ACF-9A8E-D7D9AA899E49}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
