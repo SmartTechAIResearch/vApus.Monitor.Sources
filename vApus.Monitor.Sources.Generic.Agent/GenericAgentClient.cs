@@ -9,8 +9,6 @@ using Newtonsoft.Json;
 using RandomUtils;
 using RandomUtils.Log;
 using System;
-using System.Net;
-using System.Net.Sockets;
 using System.Threading;
 using vApus.Monitor.Sources.Base;
 

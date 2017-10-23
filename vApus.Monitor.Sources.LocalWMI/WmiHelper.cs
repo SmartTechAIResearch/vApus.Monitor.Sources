@@ -13,10 +13,12 @@ using System.Globalization;
 using System.Reflection;
 using System.Threading;
 using vApus.Monitor.Sources.Base;
+using System.Linq;
 
 namespace vApus.Monitor.Sources.LocalWMI {
     public class WmiHelper {
         private Dictionary<string, PerformanceCounter> _performanceCounters = new Dictionary<string, PerformanceCounter>(); //key == category + "." + counter + "." + instance (__Total__ surrogate for none)
+        private static string[] _exceptcategories = { "Thread" };
 
         public string GetHardwareInfo() {
             CultureInfo prevCulture = Thread.CurrentThread.CurrentCulture;
@@ -50,6 +52,8 @@ namespace vApus.Monitor.Sources.LocalWMI {
             Array.Sort(categories, PerformanceCounterCategoryComparer.GetInstance());
             foreach (PerformanceCounterCategory category in categories) {
                 try {
+                    if (_exceptcategories.Contains(category.CategoryName)) continue; //Do not fetch temp counters --> takes forever and fails anyways.
+
                     string[] instances = category.GetInstanceNames();
                     Array.Sort(instances);
 
