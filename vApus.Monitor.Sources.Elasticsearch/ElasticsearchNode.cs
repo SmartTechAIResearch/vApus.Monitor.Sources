@@ -154,6 +154,8 @@ namespace vApus.Monitor.Sources.Elasticsearch {
 
             l.AddRange(JvShardsToCounterInfos(false));
 
+            l.AddRange(IndexInfoPerShardToCountInfos(false));
+
             return l;
         }
 
@@ -217,6 +219,26 @@ namespace vApus.Monitor.Sources.Elasticsearch {
             return shardCI;
         }
 
+        private List<CounterInfo> IndexInfoPerShardToCountInfos(bool addValue) {
+            var shardCI = new List<CounterInfo>();
+
+            JsonValue jvStatsForIndices = GetJSONObject("_stats")["indices"];
+            foreach(var kvp in jvStatsForIndices) {
+                foreach (var kvp2 in kvp.Value) {
+                    foreach (var kvp3 in kvp2.Value) {
+                        var ci = new CounterInfo("Stat_" + kvp.Key + "." + kvp2.Key + "." + kvp3.Key);
+                        if (addValue) {
+                            ci.SetCounter(kvp3.Value.ReadAs<string>());
+                        }
+
+                        shardCI.Add(ci);
+                    }
+                }                
+            }
+
+            return shardCI;
+        }
+
         public override Entities WDYH {
             get {
 
@@ -245,7 +267,7 @@ namespace vApus.Monitor.Sources.Elasticsearch {
             string[] jvMaster = GetBody("_cat/master").Split(' ');
             _jvShards = GetBody("_cat/shards?v=pretty");
 
-            List<CounterInfo> shardscis = JvShardsToCounterInfos(true);
+            List<CounterInfo> shardscis = null, statscis = null;
 
             foreach (Entity e in base._wiwWithCounters.GetSubs()) {
                 var stats = jvStats[e.GetName().Substring(e.GetName().IndexOf('(') - +2).Replace(")", "").Replace("(", "").Replace("\"", "").Trim()];
@@ -256,8 +278,21 @@ namespace vApus.Monitor.Sources.Elasticsearch {
                     try {
                         string ciname = ci.name.Trim();
                         if (ciname.StartsWith("Shard_")) {
+                            if(shardscis == null) shardscis = JvShardsToCounterInfos(true);
                             if (shardscis.Exists(x => x.GetName() == ci.name)) {
                                 CounterInfo candidate = shardscis.Find(x => x.GetName() == ci.name);
+                                ci.SetCounter(candidate.GetCounter());
+                            }
+                            else {
+                                ci.SetCounter(-1);
+                            }
+                            continue;
+                        }
+
+                        if (ciname.StartsWith("Stat_")) {
+                            if (statscis == null) statscis = IndexInfoPerShardToCountInfos(true);
+                            if (statscis.Exists(x => x.GetName() == ci.name)) {
+                                CounterInfo candidate = statscis.Find(x => x.GetName() == ci.name);
                                 ci.SetCounter(candidate.GetCounter());
                             }
                             else {
