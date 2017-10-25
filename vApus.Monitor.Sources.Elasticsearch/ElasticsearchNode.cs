@@ -227,7 +227,7 @@ namespace vApus.Monitor.Sources.Elasticsearch {
                 foreach (var kvp2 in kvp.Value)
                     foreach (var kvp3 in kvp2.Value)
                         foreach (var kvp4 in kvp3.Value) {
-                            var ci = new CounterInfo("Stat_" + kvp.Key + "." + kvp2.Key + "." + kvp3.Key + "." + kvp4.Value);
+                            var ci = new CounterInfo("Stat_" + kvp.Key + "." + kvp2.Key + "." + kvp3.Key + "." + kvp4.Key);
                             if (addValue)
                                 ci.SetCounter(kvp4.Value.ReadAs<string>());
 
