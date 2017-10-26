@@ -6,12 +6,14 @@
  *    Kirth Lammens en Dieter Vandroemme
  */
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Json;
 using System.Net;
 using vApus.Monitor.Sources.Base;
+using System.Linq;
 
 namespace vApus.Monitor.Sources.Elasticsearch {
     public class ElasticsearchNode : BasePollingClient {
@@ -114,7 +116,7 @@ namespace vApus.Monitor.Sources.Elasticsearch {
         }
 
         private List<CounterInfo> GetCountersForEntity() {
-            var l = new List<CounterInfo>
+            var counterInfos = new List<CounterInfo>
             {
                 new CounterInfo("Master ID"),
                 new CounterInfo("Master Hostname"),
@@ -152,11 +154,11 @@ namespace vApus.Monitor.Sources.Elasticsearch {
                 new CounterInfo("Store Size [byte]")
             };
 
-            l.AddRange(JvShardsToCounterInfos(false));
+            counterInfos.AddRange(JvShardsToCounterInfos(false));
 
-            l.AddRange(IndexInfoPerShardToCountInfos(false));
+            counterInfos.AddRange(IndexStatsToCounterInfos(false).OrderBy(x => x.name));
 
-            return l;
+            return counterInfos;
         }
 
         private List<CounterInfo> JvShardsToCounterInfos(bool addValue) {
@@ -219,30 +221,34 @@ namespace vApus.Monitor.Sources.Elasticsearch {
             return shardCI;
         }
 
-        private List<CounterInfo> IndexInfoPerShardToCountInfos(bool addValue) {
-            var l = new List<CounterInfo>();
+        private ConcurrentBag<CounterInfo> IndexStatsToCounterInfos(bool addValue) {
+            var counterInfos = new ConcurrentBag<CounterInfo>();
 
-            JsonValue jvStatsForIndices = GetJSONObject("_stats")["indices"];
+            JsonValue jvStatsForIndices = GetJSONObject("_stats");
             foreach (var kvp in jvStatsForIndices)
-                foreach (var kvp2 in kvp.Value)
-                    foreach (var kvp3 in kvp2.Value)
-                        foreach (var kvp4 in kvp3.Value) {
-                            if (kvp4.Value.Count != 0) continue;
-                            var ci = new CounterInfo("Stat_" + kvp.Key + "." + kvp2.Key + "." + kvp3.Key + "." + kvp4.Key);
-                            if (addValue) {
-                                string counter;
-                                if (kvp4.Value.TryReadAs<string>(out counter)) {
-                                    ci.SetCounter(counter);
-                                }
-                                else {
-                                    ci.SetCounter(-1);
-                                }
-                            }
+                GetLeafNodesAndStoreAsCounterInfos(kvp, "_stats", addValue, counterInfos);
 
-                            l.Add(ci);
-                        }
+            return counterInfos;
+        }
 
-            return l;
+        private void GetLeafNodesAndStoreAsCounterInfos(KeyValuePair<string, JsonValue> kvp, string combinedKey, bool addValue, ConcurrentBag<CounterInfo> counterInfos) {
+            combinedKey += "." + kvp.Key;
+            if (kvp.Value.Count == 0) {
+                var ci = new CounterInfo(combinedKey);
+                if (addValue) {
+                    string counter;
+                    if (kvp.Value.TryReadAs<string>(out counter)) {
+                        ci.SetCounter(counter);
+                    }
+                    else {
+                        ci.SetCounter(-1f);
+                    }
+                }
+            }
+            else {
+                foreach (var kvpChild in kvp.Value)
+                    GetLeafNodesAndStoreAsCounterInfos(kvpChild, combinedKey, addValue, counterInfos);
+            }
         }
 
         public override Entities WDYH {
@@ -273,7 +279,8 @@ namespace vApus.Monitor.Sources.Elasticsearch {
             string[] jvMaster = GetBody("_cat/master").Split(' ');
             _jvShards = GetBody("_cat/shards?v=pretty");
 
-            List<CounterInfo> shardscis = null, statscis = null;
+            List<CounterInfo> shardscis = null;
+            ConcurrentBag<CounterInfo> statscis = null;
 
             foreach (Entity e in base._wiwWithCounters.GetSubs()) {
                 var stats = jvStats[e.GetName().Substring(e.GetName().IndexOf('(') - +2).Replace(")", "").Replace("(", "").Replace("\"", "").Trim()];
@@ -296,9 +303,9 @@ namespace vApus.Monitor.Sources.Elasticsearch {
                         }
 
                         if (ciname.StartsWith("Stat_")) {
-                            if (statscis == null) statscis = IndexInfoPerShardToCountInfos(true);
-                            if (statscis.Exists(x => x.GetName() == ci.name)) {
-                                CounterInfo candidate = statscis.Find(x => x.GetName() == ci.name);
+                            if (statscis == null) statscis = IndexStatsToCounterInfos(true);
+                            CounterInfo candidate;
+                            if(statscis.TryPeek(out candidate)) {
                                 ci.SetCounter(candidate.GetCounter());
                             }
                             else {
