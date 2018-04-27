@@ -11,9 +11,16 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Security;
-using VimApi;
+using System.Security.Cryptography.X509Certificates;
+using System.ServiceModel;
+using System.Xml;
+using Vim25Api;
+using VMware.Binding.WsTrust;
 
 namespace vApus.Monitor.Sources.ESXi {
+
+#warning Support for sso?
+
     /// <summary>
     /// <para>This is a simple helper class to get information back from ESXi for a single host and it's VMs.</para>
     /// <para>That information consists of hardware info for the host and available counters for the host and VMs in a structured / usable manner.</para>
@@ -21,7 +28,7 @@ namespace vApus.Monitor.Sources.ESXi {
     /// <para>Do not forget to dispose this.</para>
     /// </summary>
     internal class ESXiHelper : IDisposable {
-        private VimService _service;
+        private VimPortType _service;
         private ServiceContent _serviceContent; //Getting stuff through the content.
         private Host _host;
         private const int REFRESHRATEINSECONDS = 20;
@@ -85,25 +92,35 @@ namespace vApus.Monitor.Sources.ESXi {
             Username = username;
             Password = password;
 
+            _svcRef = new ManagedObjectReference();
+            _svcRef.type = "ServiceInstance";
+            _svcRef.Value = "ServiceInstance";
+
             //Accept all (self-signed) ssl certificates.
             ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback((sender, certificate, chain, policyErrors) => { return true; });
         }
 
+        private ManagedObjectReference _svcRef;
+        private ServiceContent _sic;
+
         public bool Connect() {
             if (_service == null)
                 try {
-                    _service = new VimService();
-                    _service.Url = String.Concat("https://", HostNameOrIPAddress, "/sdk/");
-                    _service.PreAuthenticate = true;
-                    _service.CookieContainer = new System.Net.CookieContainer();
+                    string url = "https://" + HostNameOrIPAddress + "/sdk";
+                    ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+                    _service = GetVimService(url, Username, Password);
+                    //_service.PreAuthenticate = true;
+                    //_service.CookieContainer = new System.Net.CookieContainer();
 
-                    var seMOR = new ManagedObjectReference();
-                    //seMOR.Value = (vcenter) ? "SessionManager" : "ha-sessionmgr"; only supporting ESXi!
-                    seMOR.Value = "ha-sessionmgr";
-                    seMOR.type = "SessionManager";
+                    _sic = _service.RetrieveServiceContent(_svcRef);
+
+                    //var seMOR = new ManagedObjectReference();
+                    ////seMOR.Value = (vcenter) ? "SessionManager" : "ha-sessionmgr"; only supporting ESXi!
+                    //seMOR.Value = "ha-sessionmgr";
+                    //seMOR.type = "SessionManager";
 
                     //Finally connect, we do not need the user session later on.
-                    UserSession session = _service.Login(seMOR, Username, Password, "en");
+                    UserSession session = _service.Login(_sic.sessionManager, Username, Password, null);
                 } catch (Exception ex) {
                     Dispose();
                     Debug.WriteLine("ESX.Connect:" + ex.Message);
@@ -111,14 +128,22 @@ namespace vApus.Monitor.Sources.ESXi {
             return _service != null;
         }
 
-        private void MakeHost() {
+        private static VimPortType GetVimService(
+    string url, string username = null, string password = null,
+    X509Certificate2 signingCertificate = null, XmlElement rawToken = null) {            var binding = SamlTokenHelper.GetWcfBinding();            var address = new EndpointAddress(url);
+            var factory = new ChannelFactory<VimPortType>(binding, address);
+
+            // Attach the behaviour that handles the WS-Trust 1.4 protocol for VMware Vim Service
+            factory.Endpoint.Behaviors.Add(new WsTrustBehavior(rawToken));            SamlTokenHelper.SetCredentials(username, password, signingCertificate, factory.Credentials);            var service = factory.CreateChannel();            return service;    }
+
+    private void MakeHost() {
             _host = new Host();
             //Get the host ref by IP or by host name.
             IPAddress address;
             if (IPAddress.TryParse(HostNameOrIPAddress, out address))
                 _host.Reference = IPAddress.TryParse(HostNameOrIPAddress, out address) ?
-                    _service.FindByIp(ServiceContent.searchIndex, null, HostNameOrIPAddress, false) :
-                    _service.FindByDnsName(ServiceContent.searchIndex, null, Dns.GetHostEntry(HostNameOrIPAddress).HostName, false);
+                    _service.FindByIp(_sic.searchIndex, null, HostNameOrIPAddress, false) :
+                    _service.FindByDnsName(_sic.searchIndex, null, Dns.GetHostEntry(HostNameOrIPAddress).HostName, false);
 
             _host.HardwareInfo = GetPropertyContent("HostSystem", "hardware", _host.Reference)[0].propSet[0].val as HostHardwareInfo;
 
@@ -161,7 +186,9 @@ namespace vApus.Monitor.Sources.ESXi {
         private List<PerformanceCounter> MakePerformanceCounters(ManagedObjectReference reference) {
             List<PerformanceCounter> performanceCounters = null;
 
-            PerfMetricId[] perfMetricIds = _service.QueryAvailablePerfMetric(ServiceContent.perfManager, reference, DateTime.Now, false, DateTime.Now, false, REFRESHRATEINSECONDS, true);
+            PerfMetricId[] perfMetricIds = _service.QueryAvailablePerfMetric(new QueryAvailablePerfMetricRequest(ServiceContent.perfManager, reference, DateTime.Now.AddSeconds(REFRESHRATEINSECONDS * -1), DateTime.Now, REFRESHRATEINSECONDS)).returnval;
+
+            //PerfMetricId[] perfMetricIds = _service.QueryAvailablePerfMetric(ServiceContent.perfManager, reference, DateTime.Now, false, DateTime.Now, false, REFRESHRATEINSECONDS, true);
             if (perfMetricIds != null && perfMetricIds.Length != 0) {
                 performanceCounters = new List<PerformanceCounter>();
 
@@ -227,7 +254,9 @@ namespace vApus.Monitor.Sources.ESXi {
             // Create PropertyFilterSpec using the PropertySpec and ObjectPec created above.
             var propertyFilterSpecs = new PropertyFilterSpec[] { new PropertyFilterSpec() { propSet = propertySpecs, objectSet = objectSpecs } };
 
-            return _service.RetrieveProperties(ServiceContent.propertyCollector, propertyFilterSpecs);
+            //            return _service.RetrieveProperties(ServiceContent.propertyCollector, propertyFilterSpecs);
+
+            return _service.RetrieveProperties(new RetrievePropertiesRequest(ServiceContent.propertyCollector, propertyFilterSpecs)).returnval;
         }
 
         /// <summary>
@@ -241,8 +270,9 @@ namespace vApus.Monitor.Sources.ESXi {
             if (_host.VMs != null)
                 foreach (VM vm in _host.VMs)
                     perfQuerySpecs.Add(MakePerfQuerySpec(vm.Reference, vm.PerformanceCounters));
+            //            PerfEntityMetricBase[] perfEntityMetrics = _service.QueryPerf(_serviceContent.perfManager, perfQuerySpecs.ToArray());
 
-            PerfEntityMetricBase[] perfEntityMetrics = _service.QueryPerf(_serviceContent.perfManager, perfQuerySpecs.ToArray());
+            PerfEntityMetricBase[] perfEntityMetrics = _service.QueryPerf(new QueryPerfRequest(_serviceContent.perfManager, perfQuerySpecs.ToArray())).returnval;
 
             //Parse the returned stuff.
             foreach (PerfEntityMetricCSV perfEntityMetricCSV in perfEntityMetrics)
@@ -297,8 +327,10 @@ namespace vApus.Monitor.Sources.ESXi {
 
         public void Dispose() {
             if (_service != null) {
-                try { _service.Dispose(); } catch { }
+                if (_sic != null)
+                    _service.Logout(_sic.sessionManager);
                 _service = null;
+                _sic = null;
             }
         }
     }

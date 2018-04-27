@@ -6,7 +6,7 @@
  *    Dieter Vandroemme
  */
 using System.Collections.Generic;
-using VimApi;
+using Vim25Api;
 
 namespace vApus.Monitor.Sources.ESXi {
     internal class Host {

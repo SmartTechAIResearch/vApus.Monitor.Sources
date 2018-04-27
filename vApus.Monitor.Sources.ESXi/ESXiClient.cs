@@ -13,7 +13,7 @@ using System.Reflection;
 using System.Text;
 using System.Xml;
 using vApus.Monitor.Sources.Base;
-using VimApi;
+using Vim25Api;
 
 namespace vApus.Monitor.Sources.ESXi {
     public class ESXiClient : BasePollingClient {

@@ -33,19 +33,26 @@
     </DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="STSService">
+      <HintPath>..\Prerequisites\VMware-vSphere-SDK-6.7\STSService.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Web.Services" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="VimService2005">
-      <HintPath>..\Prerequisites\VMware-vSphere-SDK-5.1.0\VimService2005.dll</HintPath>
+    <Reference Include="Vim25Service">
+      <HintPath>..\Prerequisites\VMware-vSphere-SDK-6.7\Vim25Service.dll</HintPath>
     </Reference>
-    <Reference Include="VimService2005.XmlSerializers">
-      <HintPath>..\Prerequisites\VMware-vSphere-SDK-5.1.0\VimService2005.XmlSerializers.dll</HintPath>
+    <Reference Include="VMware.Binding.WsTrust">
+      <HintPath>..\Prerequisites\VMware-vSphere-SDK-6.7\VMware.Binding.WsTrust.dll</HintPath>
+    </Reference>
+    <Reference Include="VMware.Security.CredentialStore">
+      <HintPath>..\Prerequisites\VMware-vSphere-SDK-6.7\VMware.Security.CredentialStore.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
