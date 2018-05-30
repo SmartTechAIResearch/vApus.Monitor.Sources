@@ -39,6 +39,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.HDFSD
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.Proc.Agent", "vApus.Monitor.Sources.Proc.Agent\vApus.Monitor.Sources.Proc.Agent.csproj", "{3E5C4387-327D-4ACF-9A8E-D7D9AA899E49}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vApus.Monitor.Sources.Jolokia", "vApus.Monitor.Sources.Jolokia\vApus.Monitor.Sources.Jolokia.csproj", "{E2471A3F-ABD4-4752-B390-032BD803558E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -117,6 +119,10 @@ Global
 		{3E5C4387-327D-4ACF-9A8E-D7D9AA899E49}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3E5C4387-327D-4ACF-9A8E-D7D9AA899E49}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3E5C4387-327D-4ACF-9A8E-D7D9AA899E49}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2471A3F-ABD4-4752-B390-032BD803558E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2471A3F-ABD4-4752-B390-032BD803558E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2471A3F-ABD4-4752-B390-032BD803558E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2471A3F-ABD4-4752-B390-032BD803558E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

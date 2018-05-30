@@ -107,7 +107,8 @@ namespace vApus.Monitor.Sources.ESXi {
             if (_service == null)
                 try {
                     string url = "https://" + HostNameOrIPAddress + "/sdk";
-                    ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+                    ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+
                     _service = GetVimService(url, Username, Password);
                     //_service.PreAuthenticate = true;
                     //_service.CookieContainer = new System.Net.CookieContainer();
@@ -121,22 +122,30 @@ namespace vApus.Monitor.Sources.ESXi {
 
                     //Finally connect, we do not need the user session later on.
                     UserSession session = _service.Login(_sic.sessionManager, Username, Password, null);
-                } catch (Exception ex) {
+                }
+                catch (Exception ex) {
                     Dispose();
                     Debug.WriteLine("ESX.Connect:" + ex.Message);
                 }
             return _service != null;
         }
 
-        private static VimPortType GetVimService(
-    string url, string username = null, string password = null,
-    X509Certificate2 signingCertificate = null, XmlElement rawToken = null) {            var binding = SamlTokenHelper.GetWcfBinding();            var address = new EndpointAddress(url);
+        private static VimPortType GetVimService(string url, string username = null, string password = null, X509Certificate2 signingCertificate = null, XmlElement rawToken = null) {
+            var binding = SamlTokenHelper.GetWcfBinding();
+            var address = new EndpointAddress(url);
+
             var factory = new ChannelFactory<VimPortType>(binding, address);
 
             // Attach the behaviour that handles the WS-Trust 1.4 protocol for VMware Vim Service
-            factory.Endpoint.Behaviors.Add(new WsTrustBehavior(rawToken));            SamlTokenHelper.SetCredentials(username, password, signingCertificate, factory.Credentials);            var service = factory.CreateChannel();            return service;    }
+            factory.Endpoint.Behaviors.Add(new WsTrustBehavior(rawToken));
 
-    private void MakeHost() {
+            SamlTokenHelper.SetCredentials(username, password, signingCertificate, factory.Credentials);
+
+            var service = factory.CreateChannel();
+            return service;
+        }
+
+        private void MakeHost() {
             _host = new Host();
             //Get the host ref by IP or by host name.
             IPAddress address;
@@ -196,13 +205,15 @@ namespace vApus.Monitor.Sources.ESXi {
                     PerformanceCounter perfCounter = performanceCounters.Find(item => item.Id == id.counterId);
                     if (perfCounter == null) {
                         performanceCounters.Add(MakePerformanceCounter(id));
-                    } else {
+                    }
+                    else {
                         if (id.instance != string.Empty) {
                             var instance = new Instance() { Name = id.instance };
                             if (perfCounter.Instances == null) {
                                 perfCounter.Instances = new List<Instance>();
                                 perfCounter.Instances.Add(instance);
-                            } else if (!perfCounter.Instances.Any(item => item.Name == instance.Name)) { //Sadly enough, this is possible.
+                            }
+                            else if (!perfCounter.Instances.Any(item => item.Name == instance.Name)) { //Sadly enough, this is possible.
                                 perfCounter.Instances.Add(instance);
                             }
                         }
@@ -278,7 +289,8 @@ namespace vApus.Monitor.Sources.ESXi {
             foreach (PerfEntityMetricCSV perfEntityMetricCSV in perfEntityMetrics)
                 if (perfEntityMetricCSV.entity.Value == _host.Reference.Value) {
                     AddCounterValuesToEntity(perfEntityMetricCSV, _host.PerformanceCounters);
-                } else if (_host.VMs != null) {
+                }
+                else if (_host.VMs != null) {
                     VM vm = _host.VMs.Find(item => item.Reference.Value == perfEntityMetricCSV.entity.Value);
                     AddCounterValuesToEntity(perfEntityMetricCSV, vm.PerformanceCounters);
                 }
@@ -328,7 +340,8 @@ namespace vApus.Monitor.Sources.ESXi {
         public void Dispose() {
             if (_service != null) {
                 if (_sic != null)
-                    _service.Logout(_sic.sessionManager);
+                    _service.Logout(_sic.sessionManager);
+
                 _service = null;
                 _sic = null;
             }
