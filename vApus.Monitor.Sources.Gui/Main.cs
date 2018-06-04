@@ -141,7 +141,7 @@ namespace vApus.Monitor {
                 }
 
                 cboMonitorSourceClient.Items.Clear();
-                List<MonitorSourceClient> clients = Monitor.GetMonitorSourceClients();
+                List<MonitorSourceClient> clients = Monitor.InitAndGetMonitorSourceClients();
                 foreach (var c in clients) {
                     cboMonitorSourceClient.Items.Add(c);
                 }

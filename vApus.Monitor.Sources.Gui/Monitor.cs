@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Forms;
 using vApus.Monitor.Sources.Base;
+using vApus.Util;
 
 namespace vApus.Monitor {
     /// <summary>
@@ -30,6 +31,30 @@ namespace vApus.Monitor {
 
         private static object[] _parameterValues = new object[0];
         #endregion
+
+        static Monitor() {
+            List<MonitorSourceClient> clients = InitAndGetMonitorSourceClients();
+            string monitorSourceClient = Sources.Gui.Properties.Settings.Default.Client;
+            if (!string.IsNullOrEmpty(monitorSourceClient)) {
+                foreach (var c in clients) {
+                    if (c.ToString() == monitorSourceClient) {
+                        MonitorSource = c;
+                        break;
+                    }
+                }
+            }
+
+            string parameters = Sources.Gui.Properties.Settings.Default.Parameters;
+            if (!string.IsNullOrEmpty(parameters)) {
+                try {
+                    parameters = parameters.Decrypt("1l#kec@ndy!", new byte[] { 0x39, 0x16, 0xa9, 0x3d, 0x23, 0x5f, 0x65, 0x74, 0xb8, 0x95, 0x10, 0x01, 0x32 });
+                    ParameterValues = parameters.Split(new string[] { "<@,#>" }, StringSplitOptions.None);
+                }
+                catch {
+                    //ignore.
+                }
+            }
+        }
 
         #region Properties
 
@@ -59,6 +84,9 @@ namespace vApus.Monitor {
                 _monitorSourceClient = value;
                 _monitorSourceClientIndex = _monitorSourceClients.IndexOf(_monitorSourceClient);
                 _monitorSourceClientName = _monitorSourceClient.ToString();
+
+                Sources.Gui.Properties.Settings.Default.Client = _monitorSourceClientName;
+                Sources.Gui.Properties.Settings.Default.Save();
             }
         }
 
@@ -75,7 +103,14 @@ namespace vApus.Monitor {
         /// </summary>
         public static object[] ParameterValues {
             get { return _parameterValues; }
-            set { _parameterValues = value; }
+            set {
+                _parameterValues = value;
+
+                Sources.Gui.Properties.Settings.Default.Parameters =
+                    string.Join("<@,#>", _parameterValues).Encrypt("1l#kec@ndy!", new byte[] { 0x39, 0x16, 0xa9, 0x3d, 0x23, 0x5f, 0x65, 0x74, 0xb8, 0x95, 0x10, 0x01, 0x32 });
+
+                Sources.Gui.Properties.Settings.Default.Save();
+            }
         }
 
         /// <summary>
@@ -89,7 +124,8 @@ namespace vApus.Monitor {
             set {
                 try {
                     _wiw = JsonConvert.DeserializeObject<Entities>(value);
-                } catch {
+                }
+                catch {
                     //To make it 'backwards compatible' with older vass files.
                 }
                 if (_wiw == null) _wiw = new Entities();
@@ -110,7 +146,7 @@ namespace vApus.Monitor {
         /// Get all monitor source clients.
         /// </summary>
         /// <param name="monitorSources"></param>
-        public static List<MonitorSourceClient> GetMonitorSourceClients() {
+        public static List<MonitorSourceClient> InitAndGetMonitorSourceClients() {
             if (_monitorSourceClients.Count == 0) {
                 Dictionary<string, Type> clients = ClientFactory.Clients;
                 foreach (var kvp in clients) {
@@ -121,14 +157,16 @@ namespace vApus.Monitor {
                 if (clients.Count == 0) {
                     _monitorSourceClientIndex = -1;
                     _monitorSourceClientName = string.Empty;
-                } else {
+                }
+                else {
                     if (_monitorSourceClientName == string.Empty) {
                         //Backwards compatible.
                         if (_monitorSourceClientIndex == -1)
                             _monitorSourceClientIndex = 0;
                         else if (_monitorSourceClientIndex >= _monitorSourceClients.Count)
                             _monitorSourceClientIndex = _monitorSourceClients.Count - 1;
-                    } else {
+                    }
+                    else {
 
                         //Match names instead of indices #727 
                         int candidate = 0;

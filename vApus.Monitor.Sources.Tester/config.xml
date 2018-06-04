@@ -25,5 +25,5 @@ Author(s):
   <!--<test client="HDFS Name Node" parameters="192.168.32.47,50070" testCounts="1" repeats="1" />-->
   <!--<test client="HDFS Data Node" parameters="bdc-01,50075" testCounts="1" repeats="1" />-->
   <!--<test client="Proc Agent Client" parameters="192.168.146.129" testCounts="1" repeats="0" /> iDshi7#6Rt7=N3Ct -->
-  <test client="Jolokia Client" parameters="false,192.168.30.230,8778,/jolokia" testCounts="1" repeats="0" /> iDshi7#6Rt7=N3Ct 
+  <test client="Jolokia Client" parameters="false,192.168.30.230,8778,/jolokia" testCounts="1" repeats="0" />
 </tests>

@@ -34,10 +34,10 @@
         private void InitializeComponent() {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Main));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
             this.toolStrip = new System.Windows.Forms.ToolStrip();
             this.btnStart = new System.Windows.Forms.ToolStripButton();
             this.btnSchedule = new System.Windows.Forms.ToolStripButton();
@@ -46,6 +46,13 @@
             this.imgListEntityState = new System.Windows.Forms.ImageList(this.components);
             this.tmrSchedule = new System.Windows.Forms.Timer(this.components);
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.lblMonitorSourceMismatch = new System.Windows.Forms.Label();
+            this.picFilter = new System.Windows.Forms.PictureBox();
+            this.txtFilter = new System.Windows.Forms.TextBox();
+            this.picFilterMonitorControlColumns = new System.Windows.Forms.PictureBox();
+            this.txtFilterMonitorControlColumns = new System.Windows.Forms.TextBox();
+            this.btnSaveFilteredMonitoredCounters = new System.Windows.Forms.Button();
+            this.btnSaveAllMonitorCounters = new System.Windows.Forms.Button();
             this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
             this.tc = new vApus.Util.TabControlWithAdjustableBorders();
             this.tpConfigure = new System.Windows.Forms.TabPage();
@@ -53,7 +60,6 @@
             this.cboMonitorSourceClient = new System.Windows.Forms.ComboBox();
             this.panel2 = new System.Windows.Forms.Panel();
             this.label1 = new System.Windows.Forms.Label();
-            this.lblMonitorSourceMismatch = new System.Windows.Forms.Label();
             this.lblMonitorSourceParameters = new System.Windows.Forms.Label();
             this.parameterPanel = new vApus.Monitor.MonitorParameterPanel();
             this.btnConfiguration = new System.Windows.Forms.Button();
@@ -62,9 +68,7 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.chkGroupChecked = new System.Windows.Forms.CheckBox();
             this.llblUncheckAllVisible = new System.Windows.Forms.LinkLabel();
-            this.picFilter = new System.Windows.Forms.PictureBox();
             this.llblCheckAllVisible = new System.Windows.Forms.LinkLabel();
-            this.txtFilter = new System.Windows.Forms.TextBox();
             this.lvwEntities = new System.Windows.Forms.ListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clmEntities = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -73,12 +77,10 @@
             this.tpMonitor = new System.Windows.Forms.TabPage();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.lblCountDown = new System.Windows.Forms.Label();
-            this.picFilterMonitorControlColumns = new System.Windows.Forms.PictureBox();
-            this.txtFilterMonitorControlColumns = new System.Windows.Forms.TextBox();
-            this.btnSaveFilteredMonitoredCounters = new System.Windows.Forms.Button();
-            this.btnSaveAllMonitorCounters = new System.Windows.Forms.Button();
             this.monitorControl = new vApus.Monitor.MonitorControl();
             this.toolStrip.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.picFilter)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.picFilterMonitorControlColumns)).BeginInit();
             this.tc.SuspendLayout();
             this.tpConfigure.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.split)).BeginInit();
@@ -86,10 +88,8 @@
             this.split.Panel2.SuspendLayout();
             this.split.SuspendLayout();
             this.panel1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.picFilter)).BeginInit();
             this.tpMonitor.SuspendLayout();
             this.flowLayoutPanel1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.picFilterMonitorControlColumns)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.monitorControl)).BeginInit();
             this.SuspendLayout();
             // 
@@ -166,6 +166,128 @@
             this.toolTip.AutoPopDelay = 10000;
             this.toolTip.InitialDelay = 100;
             this.toolTip.ReshowDelay = 20;
+            // 
+            // lblMonitorSourceMismatch
+            // 
+            this.lblMonitorSourceMismatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblMonitorSourceMismatch.AutoEllipsis = true;
+            this.lblMonitorSourceMismatch.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
+            this.lblMonitorSourceMismatch.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblMonitorSourceMismatch.Location = new System.Drawing.Point(362, 299);
+            this.lblMonitorSourceMismatch.Name = "lblMonitorSourceMismatch";
+            this.lblMonitorSourceMismatch.Size = new System.Drawing.Size(636, 13);
+            this.lblMonitorSourceMismatch.TabIndex = 9;
+            this.lblMonitorSourceMismatch.Text = "These counters are not valid for the chosen monitor source, undo your previous ac" +
+    "tion or \'get\' the counters again.";
+            this.toolTip.SetToolTip(this.lblMonitorSourceMismatch, "These counters are not valid for the chosen monitor source, undo your previous ac" +
+        "tion or \'get\' the counters again.");
+            this.lblMonitorSourceMismatch.Visible = false;
+            // 
+            // picFilter
+            // 
+            this.picFilter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.picFilter.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.picFilter.Image = global::vApus.Monitor.Sources.Gui.Properties.Resources.find;
+            this.picFilter.Location = new System.Drawing.Point(313, 1);
+            this.picFilter.Margin = new System.Windows.Forms.Padding(0, 3, 3, 3);
+            this.picFilter.Name = "picFilter";
+            this.picFilter.Size = new System.Drawing.Size(20, 20);
+            this.picFilter.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.picFilter.TabIndex = 8;
+            this.picFilter.TabStop = false;
+            this.toolTip.SetToolTip(this.picFilter, "Type comma to split filter entries and \'return\' to submit. Wild card * can be use" +
+        "d. Not case sensitive.\r\nAll entries are in OR-relation with each other.");
+            this.picFilter.Click += new System.EventHandler(this.picFilter_Click);
+            // 
+            // txtFilter
+            // 
+            this.txtFilter.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtFilter.HideSelection = false;
+            this.txtFilter.Location = new System.Drawing.Point(1, 1);
+            this.txtFilter.Margin = new System.Windows.Forms.Padding(3, 3, 0, 3);
+            this.txtFilter.MinimumSize = new System.Drawing.Size(100, 4);
+            this.txtFilter.Name = "txtFilter";
+            this.txtFilter.Size = new System.Drawing.Size(312, 20);
+            this.txtFilter.TabIndex = 0;
+            this.txtFilter.TabStop = false;
+            this.toolTip.SetToolTip(this.txtFilter, "Type comma to split filter entries and \'return\' to submit. Wild card * can be use" +
+        "d. Not case sensitive.\r\nAll entries are in OR-relation with each other.");
+            this.txtFilter.TextChanged += new System.EventHandler(this.txtFilter_TextChanged);
+            this.txtFilter.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtFilter_KeyDown);
+            this.txtFilter.Leave += new System.EventHandler(this.txtFilter_Leave);
+            // 
+            // picFilterMonitorControlColumns
+            // 
+            this.picFilterMonitorControlColumns.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.picFilterMonitorControlColumns.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.picFilterMonitorControlColumns.Image = global::vApus.Monitor.Sources.Gui.Properties.Resources.find;
+            this.picFilterMonitorControlColumns.Location = new System.Drawing.Point(976, 16);
+            this.picFilterMonitorControlColumns.Margin = new System.Windows.Forms.Padding(0, 3, 3, 3);
+            this.picFilterMonitorControlColumns.Name = "picFilterMonitorControlColumns";
+            this.picFilterMonitorControlColumns.Size = new System.Drawing.Size(20, 20);
+            this.picFilterMonitorControlColumns.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.picFilterMonitorControlColumns.TabIndex = 11;
+            this.picFilterMonitorControlColumns.TabStop = false;
+            this.toolTip.SetToolTip(this.picFilterMonitorControlColumns, "Type comma to split filter entries and \'return\' to submit. Wild card * can be use" +
+        "d. Not case sensitive.\r\nAll entries are in OR-relation with each other.");
+            this.picFilterMonitorControlColumns.Click += new System.EventHandler(this.picFilterMonitorControlColumns_Click);
+            // 
+            // txtFilterMonitorControlColumns
+            // 
+            this.txtFilterMonitorControlColumns.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtFilterMonitorControlColumns.HideSelection = false;
+            this.txtFilterMonitorControlColumns.Location = new System.Drawing.Point(12, 16);
+            this.txtFilterMonitorControlColumns.Margin = new System.Windows.Forms.Padding(3, 3, 0, 3);
+            this.txtFilterMonitorControlColumns.Name = "txtFilterMonitorControlColumns";
+            this.txtFilterMonitorControlColumns.Size = new System.Drawing.Size(965, 20);
+            this.txtFilterMonitorControlColumns.TabIndex = 0;
+            this.txtFilterMonitorControlColumns.TabStop = false;
+            this.toolTip.SetToolTip(this.txtFilterMonitorControlColumns, "Type comma to split filter entries and \'return\' to submit. Wild card * can be use" +
+        "d. Not case sensitive.\r\nAll entries are in OR-relation with each other.");
+            this.txtFilterMonitorControlColumns.TextChanged += new System.EventHandler(this.txtFilterMonitorControlColumns_TextChanged);
+            this.txtFilterMonitorControlColumns.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtFilterMonitorControlColumns_KeyDown);
+            this.txtFilterMonitorControlColumns.Leave += new System.EventHandler(this.txtFilterMonitorControlColumns_Leave);
+            // 
+            // btnSaveFilteredMonitoredCounters
+            // 
+            this.btnSaveFilteredMonitoredCounters.AutoSize = true;
+            this.btnSaveFilteredMonitoredCounters.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnSaveFilteredMonitoredCounters.BackColor = System.Drawing.SystemColors.Control;
+            this.btnSaveFilteredMonitoredCounters.Enabled = false;
+            this.btnSaveFilteredMonitoredCounters.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnSaveFilteredMonitoredCounters.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnSaveFilteredMonitoredCounters.Location = new System.Drawing.Point(12, 47);
+            this.btnSaveFilteredMonitoredCounters.MaximumSize = new System.Drawing.Size(106, 24);
+            this.btnSaveFilteredMonitoredCounters.Name = "btnSaveFilteredMonitoredCounters";
+            this.btnSaveFilteredMonitoredCounters.Size = new System.Drawing.Size(103, 24);
+            this.btnSaveFilteredMonitoredCounters.TabIndex = 1;
+            this.btnSaveFilteredMonitoredCounters.Text = "Save filtered...";
+            this.toolTip.SetToolTip(this.btnSaveFilteredMonitoredCounters, "To filter the counters in a (large) counter collection. Wild card * can be used. " +
+        "Not case sensitive. All entries are in OR-relation with each other.");
+            this.btnSaveFilteredMonitoredCounters.UseVisualStyleBackColor = false;
+            this.btnSaveFilteredMonitoredCounters.Click += new System.EventHandler(this.btnSaveFilteredMonitoredCounters_Click);
+            // 
+            // btnSaveAllMonitorCounters
+            // 
+            this.btnSaveAllMonitorCounters.AutoSize = true;
+            this.btnSaveAllMonitorCounters.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnSaveAllMonitorCounters.BackColor = System.Drawing.SystemColors.Control;
+            this.btnSaveAllMonitorCounters.Enabled = false;
+            this.btnSaveAllMonitorCounters.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnSaveAllMonitorCounters.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnSaveAllMonitorCounters.Location = new System.Drawing.Point(124, 47);
+            this.btnSaveAllMonitorCounters.MaximumSize = new System.Drawing.Size(78, 24);
+            this.btnSaveAllMonitorCounters.Name = "btnSaveAllMonitorCounters";
+            this.btnSaveAllMonitorCounters.Size = new System.Drawing.Size(77, 24);
+            this.btnSaveAllMonitorCounters.TabIndex = 2;
+            this.btnSaveAllMonitorCounters.Text = "Save all...";
+            this.toolTip.SetToolTip(this.btnSaveAllMonitorCounters, "To filter the counters in a (large) counter collection. Wild card * can be used. " +
+        "Not case sensitive. All entries are in OR-relation with each other.");
+            this.btnSaveAllMonitorCounters.UseVisualStyleBackColor = false;
+            this.btnSaveAllMonitorCounters.Click += new System.EventHandler(this.btnSaveAllMonitorCounters_Click);
             // 
             // saveFileDialog
             // 
@@ -261,23 +383,6 @@
             this.label1.TabIndex = 11;
             this.label1.Text = "Monitor source";
             // 
-            // lblMonitorSourceMismatch
-            // 
-            this.lblMonitorSourceMismatch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.lblMonitorSourceMismatch.AutoEllipsis = true;
-            this.lblMonitorSourceMismatch.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
-            this.lblMonitorSourceMismatch.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblMonitorSourceMismatch.Location = new System.Drawing.Point(362, 299);
-            this.lblMonitorSourceMismatch.Name = "lblMonitorSourceMismatch";
-            this.lblMonitorSourceMismatch.Size = new System.Drawing.Size(636, 13);
-            this.lblMonitorSourceMismatch.TabIndex = 9;
-            this.lblMonitorSourceMismatch.Text = "These counters are not valid for the chosen monitor source, undo your previous ac" +
-    "tion or \'get\' the counters again.";
-            this.toolTip.SetToolTip(this.lblMonitorSourceMismatch, "These counters are not valid for the chosen monitor source, undo your previous ac" +
-        "tion or \'get\' the counters again.");
-            this.lblMonitorSourceMismatch.Visible = false;
-            // 
             // lblMonitorSourceParameters
             // 
             this.lblMonitorSourceParameters.AutoSize = true;
@@ -343,7 +448,7 @@
             this.btnSetDefaultWiw.Enabled = false;
             this.btnSetDefaultWiw.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnSetDefaultWiw.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnSetDefaultWiw.Location = new System.Drawing.Point(6, 294);
+            this.btnSetDefaultWiw.Location = new System.Drawing.Point(3, 296);
             this.btnSetDefaultWiw.Margin = new System.Windows.Forms.Padding(0, 0, 3, 0);
             this.btnSetDefaultWiw.Name = "btnSetDefaultWiw";
             this.btnSetDefaultWiw.Size = new System.Drawing.Size(353, 22);
@@ -402,22 +507,6 @@
             this.llblUncheckAllVisible.VisitedLinkColor = System.Drawing.Color.Black;
             this.llblUncheckAllVisible.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.llblUncheckAllVisible_LinkClicked);
             // 
-            // picFilter
-            // 
-            this.picFilter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.picFilter.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.picFilter.Image = global::vApus.Monitor.Sources.Gui.Properties.Resources.find;
-            this.picFilter.Location = new System.Drawing.Point(313, 1);
-            this.picFilter.Margin = new System.Windows.Forms.Padding(0, 3, 3, 3);
-            this.picFilter.Name = "picFilter";
-            this.picFilter.Size = new System.Drawing.Size(20, 20);
-            this.picFilter.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.picFilter.TabIndex = 8;
-            this.picFilter.TabStop = false;
-            this.toolTip.SetToolTip(this.picFilter, "Type comma to split filter entries and \'return\' to submit. Wild card * can be use" +
-        "d. Not case sensitive.\r\nAll entries are in OR-relation with each other.");
-            this.picFilter.Click += new System.EventHandler(this.picFilter_Click);
-            // 
             // llblCheckAllVisible
             // 
             this.llblCheckAllVisible.ActiveLinkColor = System.Drawing.Color.Black;
@@ -441,24 +530,6 @@
             this.llblCheckAllVisible.VisitedLinkColor = System.Drawing.Color.Black;
             this.llblCheckAllVisible.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.llblCheckAllVisible_LinkClicked);
             // 
-            // txtFilter
-            // 
-            this.txtFilter.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtFilter.HideSelection = false;
-            this.txtFilter.Location = new System.Drawing.Point(1, 1);
-            this.txtFilter.Margin = new System.Windows.Forms.Padding(3, 3, 0, 3);
-            this.txtFilter.MinimumSize = new System.Drawing.Size(100, 4);
-            this.txtFilter.Name = "txtFilter";
-            this.txtFilter.Size = new System.Drawing.Size(312, 20);
-            this.txtFilter.TabIndex = 0;
-            this.txtFilter.TabStop = false;
-            this.toolTip.SetToolTip(this.txtFilter, "Type comma to split filter entries and \'return\' to submit. Wild card * can be use" +
-        "d. Not case sensitive.\r\nAll entries are in OR-relation with each other.");
-            this.txtFilter.TextChanged += new System.EventHandler(this.txtFilter_TextChanged);
-            this.txtFilter.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtFilter_KeyDown);
-            this.txtFilter.Leave += new System.EventHandler(this.txtFilter_Leave);
-            // 
             // lvwEntities
             // 
             this.lvwEntities.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -476,7 +547,7 @@
             this.lvwEntities.Margin = new System.Windows.Forms.Padding(3, 3, 3, 0);
             this.lvwEntities.MultiSelect = false;
             this.lvwEntities.Name = "lvwEntities";
-            this.lvwEntities.Size = new System.Drawing.Size(353, 291);
+            this.lvwEntities.Size = new System.Drawing.Size(353, 293);
             this.lvwEntities.SmallImageList = this.imgListEntityState;
             this.lvwEntities.TabIndex = 0;
             this.lvwEntities.UseCompatibleStateImageBehavior = false;
@@ -509,7 +580,7 @@
             this.tvwCounters.Location = new System.Drawing.Point(362, 31);
             this.tvwCounters.Margin = new System.Windows.Forms.Padding(0, 3, 3, 3);
             this.tvwCounters.Name = "tvwCounters";
-            this.tvwCounters.Size = new System.Drawing.Size(639, 285);
+            this.tvwCounters.Size = new System.Drawing.Size(639, 287);
             this.tvwCounters.TabIndex = 2;
             this.tvwCounters.AfterCheck += new System.Windows.Forms.TreeViewEventHandler(this.tvwCounter_AfterCheck);
             this.tvwCounters.BeforeExpand += new System.Windows.Forms.TreeViewCancelEventHandler(this.tvwCounter_BeforeExpand);
@@ -554,84 +625,13 @@
             this.lblCountDown.Text = "Updates in";
             this.lblCountDown.Visible = false;
             // 
-            // picFilterMonitorControlColumns
-            // 
-            this.picFilterMonitorControlColumns.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.picFilterMonitorControlColumns.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.picFilterMonitorControlColumns.Image = global::vApus.Monitor.Sources.Gui.Properties.Resources.find;
-            this.picFilterMonitorControlColumns.Location = new System.Drawing.Point(976, 16);
-            this.picFilterMonitorControlColumns.Margin = new System.Windows.Forms.Padding(0, 3, 3, 3);
-            this.picFilterMonitorControlColumns.Name = "picFilterMonitorControlColumns";
-            this.picFilterMonitorControlColumns.Size = new System.Drawing.Size(20, 20);
-            this.picFilterMonitorControlColumns.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.picFilterMonitorControlColumns.TabIndex = 11;
-            this.picFilterMonitorControlColumns.TabStop = false;
-            this.toolTip.SetToolTip(this.picFilterMonitorControlColumns, "Type comma to split filter entries and \'return\' to submit. Wild card * can be use" +
-        "d. Not case sensitive.\r\nAll entries are in OR-relation with each other.");
-            this.picFilterMonitorControlColumns.Click += new System.EventHandler(this.picFilterMonitorControlColumns_Click);
-            // 
-            // txtFilterMonitorControlColumns
-            // 
-            this.txtFilterMonitorControlColumns.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtFilterMonitorControlColumns.HideSelection = false;
-            this.txtFilterMonitorControlColumns.Location = new System.Drawing.Point(12, 16);
-            this.txtFilterMonitorControlColumns.Margin = new System.Windows.Forms.Padding(3, 3, 0, 3);
-            this.txtFilterMonitorControlColumns.Name = "txtFilterMonitorControlColumns";
-            this.txtFilterMonitorControlColumns.Size = new System.Drawing.Size(965, 20);
-            this.txtFilterMonitorControlColumns.TabIndex = 0;
-            this.txtFilterMonitorControlColumns.TabStop = false;
-            this.toolTip.SetToolTip(this.txtFilterMonitorControlColumns, "Type comma to split filter entries and \'return\' to submit. Wild card * can be use" +
-        "d. Not case sensitive.\r\nAll entries are in OR-relation with each other.");
-            this.txtFilterMonitorControlColumns.TextChanged += new System.EventHandler(this.txtFilterMonitorControlColumns_TextChanged);
-            this.txtFilterMonitorControlColumns.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtFilterMonitorControlColumns_KeyDown);
-            this.txtFilterMonitorControlColumns.Leave += new System.EventHandler(this.txtFilterMonitorControlColumns_Leave);
-            // 
-            // btnSaveFilteredMonitoredCounters
-            // 
-            this.btnSaveFilteredMonitoredCounters.AutoSize = true;
-            this.btnSaveFilteredMonitoredCounters.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.btnSaveFilteredMonitoredCounters.BackColor = System.Drawing.SystemColors.Control;
-            this.btnSaveFilteredMonitoredCounters.Enabled = false;
-            this.btnSaveFilteredMonitoredCounters.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnSaveFilteredMonitoredCounters.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnSaveFilteredMonitoredCounters.Location = new System.Drawing.Point(12, 47);
-            this.btnSaveFilteredMonitoredCounters.MaximumSize = new System.Drawing.Size(106, 24);
-            this.btnSaveFilteredMonitoredCounters.Name = "btnSaveFilteredMonitoredCounters";
-            this.btnSaveFilteredMonitoredCounters.Size = new System.Drawing.Size(103, 24);
-            this.btnSaveFilteredMonitoredCounters.TabIndex = 1;
-            this.btnSaveFilteredMonitoredCounters.Text = "Save filtered...";
-            this.toolTip.SetToolTip(this.btnSaveFilteredMonitoredCounters, "To filter the counters in a (large) counter collection. Wild card * can be used. " +
-        "Not case sensitive. All entries are in OR-relation with each other.");
-            this.btnSaveFilteredMonitoredCounters.UseVisualStyleBackColor = false;
-            this.btnSaveFilteredMonitoredCounters.Click += new System.EventHandler(this.btnSaveFilteredMonitoredCounters_Click);
-            // 
-            // btnSaveAllMonitorCounters
-            // 
-            this.btnSaveAllMonitorCounters.AutoSize = true;
-            this.btnSaveAllMonitorCounters.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.btnSaveAllMonitorCounters.BackColor = System.Drawing.SystemColors.Control;
-            this.btnSaveAllMonitorCounters.Enabled = false;
-            this.btnSaveAllMonitorCounters.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnSaveAllMonitorCounters.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnSaveAllMonitorCounters.Location = new System.Drawing.Point(124, 47);
-            this.btnSaveAllMonitorCounters.MaximumSize = new System.Drawing.Size(78, 24);
-            this.btnSaveAllMonitorCounters.Name = "btnSaveAllMonitorCounters";
-            this.btnSaveAllMonitorCounters.Size = new System.Drawing.Size(77, 24);
-            this.btnSaveAllMonitorCounters.TabIndex = 2;
-            this.btnSaveAllMonitorCounters.Text = "Save all...";
-            this.toolTip.SetToolTip(this.btnSaveAllMonitorCounters, "To filter the counters in a (large) counter collection. Wild card * can be used. " +
-        "Not case sensitive. All entries are in OR-relation with each other.");
-            this.btnSaveAllMonitorCounters.UseVisualStyleBackColor = false;
-            this.btnSaveAllMonitorCounters.Click += new System.EventHandler(this.btnSaveAllMonitorCounters_Click);
-            // 
             // monitorControl
             // 
             this.monitorControl.AllowUserToAddRows = false;
             this.monitorControl.AllowUserToDeleteRows = false;
             this.monitorControl.AllowUserToResizeRows = false;
-            dataGridViewCellStyle1.BackColor = System.Drawing.Color.White;
-            this.monitorControl.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle5.BackColor = System.Drawing.Color.White;
+            this.monitorControl.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle5;
             this.monitorControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
@@ -639,14 +639,14 @@
             this.monitorControl.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.monitorControl.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
             this.monitorControl.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.Color.White;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Consolas", 9.75F);
-            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.monitorControl.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle6.BackColor = System.Drawing.Color.White;
+            dataGridViewCellStyle6.Font = new System.Drawing.Font("Consolas", 9.75F);
+            dataGridViewCellStyle6.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle6.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle6.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.monitorControl.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle6;
             this.monitorControl.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             this.monitorControl.DoubleBuffered = true;
             this.monitorControl.EnableHeadersVisualStyles = false;
@@ -655,17 +655,17 @@
             this.monitorControl.Name = "monitorControl";
             this.monitorControl.ReadOnly = true;
             this.monitorControl.RowHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle3.BackColor = System.Drawing.Color.White;
-            dataGridViewCellStyle3.Font = new System.Drawing.Font("Consolas", 9.75F);
-            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.monitorControl.RowHeadersDefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle7.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle7.BackColor = System.Drawing.Color.White;
+            dataGridViewCellStyle7.Font = new System.Drawing.Font("Consolas", 9.75F);
+            dataGridViewCellStyle7.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle7.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle7.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle7.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.monitorControl.RowHeadersDefaultCellStyle = dataGridViewCellStyle7;
             this.monitorControl.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
-            dataGridViewCellStyle4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(250)))), ((int)(((byte)(250)))), ((int)(((byte)(250)))));
-            this.monitorControl.RowsDefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle8.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(250)))), ((int)(((byte)(250)))), ((int)(((byte)(250)))));
+            this.monitorControl.RowsDefaultCellStyle = dataGridViewCellStyle8;
             this.monitorControl.Size = new System.Drawing.Size(1007, 569);
             this.monitorControl.TabIndex = 3;
             this.monitorControl.VirtualMode = true;
@@ -683,6 +683,8 @@
             this.Text = "vApus monitor sources";
             this.toolStrip.ResumeLayout(false);
             this.toolStrip.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.picFilter)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.picFilterMonitorControlColumns)).EndInit();
             this.tc.ResumeLayout(false);
             this.tpConfigure.ResumeLayout(false);
             this.split.Panel1.ResumeLayout(false);
@@ -692,12 +694,10 @@
             this.split.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.picFilter)).EndInit();
             this.tpMonitor.ResumeLayout(false);
             this.tpMonitor.PerformLayout();
             this.flowLayoutPanel1.ResumeLayout(false);
             this.flowLayoutPanel1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.picFilterMonitorControlColumns)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.monitorControl)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

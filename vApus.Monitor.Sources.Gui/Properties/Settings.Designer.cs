@@ -22,5 +22,29 @@ namespace vApus.Monitor.Sources.Gui.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string Client {
+            get {
+                return ((string)(this["Client"]));
+            }
+            set {
+                this["Client"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string Parameters {
+            get {
+                return ((string)(this["Parameters"]));
+            }
+            set {
+                this["Parameters"] = value;
+            }
+        }
     }
 }
