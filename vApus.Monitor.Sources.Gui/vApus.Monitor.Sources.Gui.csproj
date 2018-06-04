@@ -238,9 +238,7 @@
       <DependentUpon>ExtendedScheduleDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="Extensions.cs" />
-    <Compile Include="LocalMonitor.cs" />
     <Compile Include="Monitor.cs" />
-    <Compile Include="MonitorProject.cs" />
     <Compile Include="MonitorResult.cs" />
     <Compile Include="MonitorSourceClient.cs" />
     <Compile Include="Main.cs">

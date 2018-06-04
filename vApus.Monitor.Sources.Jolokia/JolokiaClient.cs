@@ -126,8 +126,42 @@ namespace vApus.Monitor.Sources.Jolokia {
             _username = (string)base.GetParameter("Username").Value;
             _password = (string)base.GetParameter("Password").Value;
 
-#warning Handle this more nicely.
-            _connected = true;
+            try {
+                string url = (_ssl ? "https://" : "http://") + _hostname + ":" + _port + _relUrl;
+                HttpWebRequest req = WebRequest.CreateHttp(url);
+                if (_username.Length != 0) {
+                    string encoded = Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1").GetBytes(_username + ":" + _password));
+                    req.Headers.Add("Authorization", "Basic " + encoded);
+                }
+                req.Method = "GET";
+                req.Timeout = 5000;
+
+                req.Proxy = null;
+
+                using (HttpWebResponse res = req.GetResponse() as HttpWebResponse) {
+                    string encoding = res.ContentEncoding.ToLower();
+
+                    StreamReader sr = null;
+                    if (encoding.Contains("gzip")) {
+                        sr = new StreamReader(new GZipStream(res.GetResponseStream(), CompressionMode.Decompress));
+                    }
+                    else if (encoding.Contains("deflate")) {
+                        sr = new StreamReader(new DeflateStream(res.GetResponseStream(), CompressionMode.Decompress));
+                    }
+                    else {
+                        sr = new StreamReader(res.GetResponseStream(), encoding.Length != 0 ? Encoding.GetEncoding(encoding) : Encoding.GetEncoding(1252));
+                    }
+
+                    using (sr) {
+                        JsonValue.Parse(sr.ReadToEnd());
+                    }
+                }
+
+                _connected = true;
+            }
+            catch {
+                _connected = false;
+            }
 
             return _connected;
         }
@@ -221,7 +255,7 @@ namespace vApus.Monitor.Sources.Jolokia {
             req.Method = "POST";
             req.ContentLength = Encoding.UTF8.GetByteCount(postData);
             req.ContentType = "text/plain";
-            req.Timeout = 20000;
+            req.Timeout = 5000;
             req.Proxy = null;
 
             using (Stream postStream = req.GetRequestStream()) {
