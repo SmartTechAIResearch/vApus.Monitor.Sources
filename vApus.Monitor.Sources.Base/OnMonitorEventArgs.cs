@@ -12,7 +12,14 @@ namespace vApus.Monitor.Sources.Base {
     /// Reports counters.
     /// </summary>
     public class OnMonitorEventArgs : EventArgs {
+        /// <summary>
+        /// 
+        /// </summary>
         public Entities Counters { get; private set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="counters"></param>
         public OnMonitorEventArgs(Entities counters) {
             Counters = counters;
         }

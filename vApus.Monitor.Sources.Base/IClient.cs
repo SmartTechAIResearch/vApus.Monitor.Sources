@@ -12,12 +12,27 @@ namespace vApus.Monitor.Sources.Base {
     /// Implemented by BaseClient
     /// </summary>
     public interface IClient : IDisposable {
+        /// <summary>
+        /// 
+        /// </summary>
         event EventHandler<OnMonitorEventArgs> OnMonitor;
 
         #region Properties
+        /// <summary>
+        /// 
+        /// </summary>
         string Name { get; }
+        /// <summary>
+        /// 
+        /// </summary>
         string Description { get; }
+        /// <summary>
+        /// 
+        /// </summary>
         Parameter[] Parameters { get; }
+        /// <summary>
+        /// 
+        /// </summary>
         bool IsConnected { get; }
         /// <summary>
         /// The hardware configuration of the monitored machine if applicable.
@@ -63,8 +78,7 @@ namespace vApus.Monitor.Sources.Base {
         /// The number of values cannot be greater than the number of parameters.
         /// The type of the values must be the same as the type of the default values in the parameters.
         /// </summary>
-        /// <param name="value1"></param>
-        /// <param name="otherValues"></param>
+        /// <param name="values"></param>
         void SetParameterValues(params object[] values);
         /// <summary>
         /// 

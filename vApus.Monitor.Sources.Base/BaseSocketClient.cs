@@ -215,7 +215,6 @@ namespace vApus.Monitor.Sources.Base {
         /// Write to a socket. Used in WriteRead(write).  Serialization stuff must be done here.
         /// Also add Console.WriteLine stuff to be used when testing. Check using CanConsoleWriteLine if there should be outputted.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="write"></param>
         protected abstract void Write(T write);
         /// <summary>

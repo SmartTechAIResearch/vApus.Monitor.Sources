@@ -20,7 +20,9 @@ namespace vApus.Monitor.Sources.Base {
     /// </summary>
     public static class ClientFactory {
         private static Dictionary<string, Type> _clients = new Dictionary<string, Type>();
-
+        /// <summary>
+        /// 
+        /// </summary>
         public static string MonitorSourceClientsFolderLocation { get; private set; }
 
         /// <summary>
@@ -40,7 +42,11 @@ namespace vApus.Monitor.Sources.Base {
             MonitorSourceClientsFolderLocation = Path.Combine(Application.StartupPath, "MonitorSourceClients");
             AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         public static IClient Create(Type type) { return Activator.CreateInstance(type) as IClient; }
 
         private static Dictionary<string, Type> GetClients() {

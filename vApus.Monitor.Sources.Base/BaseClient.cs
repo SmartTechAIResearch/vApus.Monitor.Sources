@@ -26,14 +26,31 @@ namespace vApus.Monitor.Sources.Base {
 
         #region Fields
         private readonly BackgroundWorkQueue _backgroundWorkQueue = new BackgroundWorkQueue();
+        /// <summary>
+        /// 
+        /// </summary>
         protected readonly JsonSerializerSettings _jsonSerializerSettings = new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore };
 
         private string _name, _description;
+        /// <summary>
+        /// 
+        /// </summary>
         protected Parameter[] _parameters = { };
-
+        /// <summary>
+        /// 
+        /// </summary>
         protected string _config, _decimalSeparator;
+        /// <summary>
+        /// 
+        /// </summary>
         protected Entities _wdyh, _wiw;
+        /// <summary>
+        /// 
+        /// </summary>
         protected int _id = -1; //for tests
+        /// <summary>
+        /// 
+        /// </summary>
         protected bool _started, _verboseConsoleOutput; //verbose = main reason is for tests
         #endregion
 
@@ -62,7 +79,9 @@ namespace vApus.Monitor.Sources.Base {
         /// <summary>
         /// </summary>
         public Parameter[] Parameters { get { return _parameters; } }
-
+        /// <summary>
+        /// 
+        /// </summary>
         public abstract bool IsConnected { get; }
 
         /// <summary>
@@ -118,7 +137,9 @@ namespace vApus.Monitor.Sources.Base {
             }
             set { _wiw = JsonConvert.DeserializeObject<Entities>(value, _jsonSerializerSettings); }
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
         public bool IsDisposed { get; private set; }
         #endregion
 
@@ -188,7 +209,10 @@ namespace vApus.Monitor.Sources.Base {
                 } catch { }
             }
         }
-
+/// <summary>
+/// 
+/// </summary>
+/// <returns></returns>
         public override string ToString() { return Name; }
 
         #region Functionality Testing

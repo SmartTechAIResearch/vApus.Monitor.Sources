@@ -19,11 +19,19 @@ namespace vApus.Monitor.Sources.Base {
     public abstract class BaseClientSwitcher : IClient {
         #region Fields
         private readonly BackgroundWorkQueue _backgroundWorkQueue = new BackgroundWorkQueue();
+        /// <summary>
+        /// 
+        /// </summary>
         public event System.EventHandler<OnMonitorEventArgs> OnMonitor;
 
         private string _name, _description;
+        /// <summary>
+        /// 
+        /// </summary>
         protected Parameter[] _parameters = { };
-
+        /// <summary>
+        /// 
+        /// </summary>
         protected IClient _client;
         #endregion
 
@@ -52,7 +60,9 @@ namespace vApus.Monitor.Sources.Base {
         /// <summary>
         /// </summary>
         public Parameter[] Parameters { get { return _parameters; } }
-
+        /// <summary>
+        /// 
+        /// </summary>
         public bool IsConnected {
             get {
                 if (_client == null)
@@ -110,7 +120,9 @@ namespace vApus.Monitor.Sources.Base {
             get { return _client.WIWRepresentation; }
             set { _client.WIWRepresentation = value; }
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
         public bool IsDisposed { get; private set; }
         #endregion
 
@@ -132,8 +144,7 @@ namespace vApus.Monitor.Sources.Base {
         /// The number of values cannot be greater than the number of parameters.
         /// The type of the values must be the same as the type of the default values in the parameters.
         /// </summary>
-        /// <param name="value1"></param>
-        /// <param name="otherValues"></param>
+        /// <param name="values"></param>
         public void SetParameterValues(params object[] values) {
             if (values.Length > _parameters.Length)
                 throw new Exception("The number of values is greater than the number of parameters.");
@@ -164,7 +175,10 @@ namespace vApus.Monitor.Sources.Base {
             client = null;
             return null;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public bool Start() { return _client.Start(); }
 
         private void client_OnMonitor(object sender, OnMonitorEventArgs e) { InvokeOnMonitor(e.Counters); }
@@ -179,13 +193,19 @@ namespace vApus.Monitor.Sources.Base {
                     OnMonitor(this, new OnMonitorEventArgs(o));
                 }), counters);
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public bool Stop() {
             if (_client == null) 
                 return true;
             return _client.Stop();
         }
-
+/// <summary>
+/// 
+/// </summary>
+/// <returns></returns>
         public bool Disconnect() {
             if (_client == null)
                 return true;
@@ -203,7 +223,12 @@ namespace vApus.Monitor.Sources.Base {
                 } catch { }
             }
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="verboseConsoleOutput"></param>
+        /// <param name="id"></param>
+        /// <param name="parameterValues"></param>
         public void Test(bool verboseConsoleOutput, int id, params object[] parameterValues) {
             SetParameterValues(parameterValues);
             Connect();

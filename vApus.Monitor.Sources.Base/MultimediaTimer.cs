@@ -180,9 +180,7 @@ namespace Multimedia {
         /// The IContainer to which the Timer will add itself.
         /// </param>
         public Timer(IContainer container) {
-            ///
-            /// Required for Windows.Forms Class Composition Designer support
-            ///
+            // Required for Windows.Forms Class Composition Designer support
             container.Add(this);
 
             Initialize();
@@ -195,6 +193,8 @@ namespace Multimedia {
             Initialize();
         }
 
+        /// <summary>
+        /// </summary>
         ~Timer() {
             if (IsRunning) {
                 // Stop and destroy timer.
@@ -547,9 +547,12 @@ namespace Multimedia {
         #endregion
 
         #region IComponent Members
-
+        /// <summary>
+        /// </summary>
         public event System.EventHandler Disposed;
 
+        /// <summary>
+        /// </summary>
         public ISite Site {
             get { return _site; }
             set { _site = value; }

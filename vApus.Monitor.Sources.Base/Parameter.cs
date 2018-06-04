@@ -14,8 +14,11 @@ namespace vApus.Monitor.Sources.Base {
     [Serializable]
     public class Parameter {
         private object _value;
-
+        /// <summary>
+        /// </summary>
         public string Name { get; set; }
+        /// <summary>
+        /// </summary>
         public string Description { get; set; }
         ///// <summary>
         ///// For auto-generated gui.
