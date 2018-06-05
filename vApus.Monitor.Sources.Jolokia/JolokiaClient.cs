@@ -103,8 +103,8 @@ namespace vApus.Monitor.Sources.Jolokia {
             base._parameters = new Parameter[] {
                 new Parameter() { Name = "SSL", DefaultValue = false },
                 new Parameter() { Name = "Hostname", DefaultValue = "" },
-                new Parameter() { Name = "Port", DefaultValue = 9999 },
-                new Parameter() { Name = "Relative URL", DefaultValue = "/jolokia" },
+                new Parameter() { Name = "Port", DefaultValue = 8778 },
+                new Parameter() { Name = "Relative URL", DefaultValue = "/jolokia/" },
                 new Parameter() { Name = "Username", Description = "For basic authentication", DefaultValue = "", Optional = true },
                 new Parameter() { Name = "Password", Description = "For basic authentication", DefaultValue = "", Encrypted = true, Optional = true }
            };
