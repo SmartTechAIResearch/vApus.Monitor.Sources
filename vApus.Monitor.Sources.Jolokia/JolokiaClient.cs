@@ -62,14 +62,15 @@ namespace vApus.Monitor.Sources.Jolokia {
                             if (joCandidate != null && lines.Add(line)) {
                                 //Construct json objects to be posted in an array to jolokia when requesting counters.
                                 var jo = new JsonObject();
-                                if (!jo.ContainsKey("type"))
-                                    jo.Add("type", new JsonPrimitive("read"));
 
                                 foreach (string key in joCandidate.Keys) {
                                     JsonValue value;
                                     joCandidate.TryGetValue(key, out value);
                                     jo.Add(key, value);
                                 }
+
+                                if (!jo.ContainsKey("type"))
+                                    jo.Add("type", new JsonPrimitive("read"));
 
                                 JsonValue mbean, attribute, path;
                                 if (jo.TryGetValue("mbean", out mbean) && jo.TryGetValue("attribute", out attribute)) {
@@ -226,6 +227,9 @@ namespace vApus.Monitor.Sources.Jolokia {
                         else {
                             string value = primitive.ToString();
                             if (primitive.JsonType == JsonType.Number) {
+                                if (DecimalSeparator == ",")
+                                    value = value.Replace('.', ',');
+
                                 counters[fullPath].SetCounter(double.Parse(value));
                             }
                             else if (primitive.JsonType == JsonType.Boolean) {

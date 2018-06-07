@@ -4,6 +4,10 @@ One counter per line, json formatted. Lines of text in this file that is not jso
 Like so:
 { "mbean" : "java.lang:type=Memory", "attribute" : "HeapMemoryUsage", "path" : "used" }
 { "mbean" : "java.lang:type=Memory", "attribute" : "HeapMemoryUsage", "path" : "committed" }
+{ "mbean" : "kafka.server:name=MessagesInPerSec,type=BrokerTopicMetrics", "attribute" : "MeanRate" }
+{ "mbean" : "kafka.server:name=MessagesInPerSec,type=BrokerTopicMetrics", "attribute" : "OneMinuteRate" }
+{ "mbean" : "kafka.server:name=MessagesInPerSec,type=BrokerTopicMetrics", "attribute" : "FiveMinuteRate" }
+{ "mbean" : "kafka.server:name=MessagesInPerSec,type=BrokerTopicMetrics", "attribute" : "FifteenMinuteRate" }
 
 
 One such counter line MUST lead to EXACTLY ONE value. e.g.
