@@ -79,6 +79,7 @@ All paths for the mbean java.lang:type=Memory/HeapMemoryUsage:
 //    "attribute": "HeapMemoryUsage"
 //}
 
+It is possible that a path is not available, but a value is returned instead.
 If a path contains multiple values eg path "a" contains "value":"{"b":123,"c":456}" you must define your paths like so in your counter line:
 
 //{ "mbean" : "mbeanA", "attribute" : "attributeA", "path" : "a/b" }

@@ -62,7 +62,8 @@ namespace vApus.Monitor.Sources.Jolokia {
                             if (joCandidate != null && lines.Add(line)) {
                                 //Construct json objects to be posted in an array to jolokia when requesting counters.
                                 var jo = new JsonObject();
-                                jo.Add("type", new JsonPrimitive("read"));
+                                if (!jo.ContainsKey("type"))
+                                    jo.Add("type", new JsonPrimitive("read"));
 
                                 foreach (string key in joCandidate.Keys) {
                                     JsonValue value;
@@ -71,8 +72,9 @@ namespace vApus.Monitor.Sources.Jolokia {
                                 }
 
                                 JsonValue mbean, attribute, path;
-                                if (jo.TryGetValue("mbean", out mbean) && jo.TryGetValue("attribute", out attribute) && jo.TryGetValue("path", out path)) {
-                                    string fullPath = mbean + "." + attribute + "/" + path;
+                                if (jo.TryGetValue("mbean", out mbean) && jo.TryGetValue("attribute", out attribute)) {
+                                    string fullPath = mbean + "." + attribute;
+                                    if (jo.TryGetValue("path", out path)) fullPath += "/" + path;
                                     infos.Add(new CounterInfo(fullPath));
                                     _wihJObjects.Add(fullPath, jo);
                                 }
@@ -211,8 +213,9 @@ namespace vApus.Monitor.Sources.Jolokia {
                     JsonObject request = req as JsonObject;
 
                     JsonValue mbean, attribute, path;
-                    if (request.TryGetValue("mbean", out mbean) && request.TryGetValue("attribute", out attribute) && request.TryGetValue("path", out path)) {
-                        string fullPath = mbean + "." + attribute + "/" + path;
+                    if (request.TryGetValue("mbean", out mbean) && request.TryGetValue("attribute", out attribute)) {
+                        string fullPath = mbean + "." + attribute;
+                        if (request.TryGetValue("path", out path)) fullPath += "/" + path;
 
                         JsonValue primitive;
                         jo.TryGetValue("value", out primitive);
