@@ -298,6 +298,9 @@
     <None Include="Resources\btnSchedule.Image.png" />
     <None Include="Resources\find.png" />
     <None Include="Resources\Eye-black-16.png" />
+    <Content Include="license.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\Monitor.png" />
     <Content Include="Resources\MonitorProject.png" />
   </ItemGroup>

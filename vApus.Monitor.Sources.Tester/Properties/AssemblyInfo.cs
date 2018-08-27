@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("vApus Monitor Sources Tester")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Howest Sizing Servers Lab")]
+[assembly: AssemblyCompany("Sizing Servers Lab, affiliated with IT bachelor degree NMCT at University College of West-Flanders, Department GKG (www.sizingservers.be, www.nmct.be, www.howest.be/en)")]
 [assembly: AssemblyProduct("vApus.Monitor.Sources.Tester")]
-[assembly: AssemblyCopyright("Copyright 2014 (c) Sizing Servers Lab\nUniversity College of West-Flanders, Department GKG")]
+[assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

@@ -1,6 +1,6 @@
 ﻿/*
- * Copyright 2014 (c) Sizing Servers Lab
- * University College of West-Flanders, Department GKG
+ * 2014 Sizing Servers Lab, affiliated with IT bachelor degree NMCT
+ * University College of West-Flanders, Department GKG (www.sizingservers.be, www.nmct.be, www.howest.be/en)
  * 
  * Author(s):
  *    Dieter Vandroemme
@@ -43,7 +43,7 @@ namespace vApus.Monitor.Sources.Generic.Agent {
         }
 
         /// <summary>
-        /// Example: Copyright 2014 (c) Sizing Servers Lab\nUniversity College of West-Flanders, Department GKG
+        /// Example: Copyright 2014 Sizing Servers Lab, affiliated with IT bachelor degree NMCT\nUniversity College of West-Flanders, Department GKG
         /// </summary>
         public string AgentCopyright {
             get {

@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Hbase Region Server")]
 [assembly: AssemblyDescription("Hbase Region Server monitor")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Sizing Servers Lab, affiliated with IT bachelor degree NMCT at University College of West-Flanders, Department GKG (www.sizingservers.be, www.nmct.be, www.howest.be/en)")]
 [assembly: AssemblyProduct("vApus.Monitor.Sources.HbaseRegionServer")]
-[assembly: AssemblyCopyright("Copyright 2016 (c) Sizing Servers Lab\nUniversity College of West-Flanders, Department GKG")]
+[assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

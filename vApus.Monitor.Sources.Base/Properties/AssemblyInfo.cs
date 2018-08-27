@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("vApus.Monitor.Sources.Base")]
-[assembly: AssemblyDescription("Howest Sizing Servers Lab")]
+[assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Sizing Servers Lab, affiliated with IT bachelor degree NMCT at University College of West-Flanders, Department GKG (www.sizingservers.be, www.nmct.be, www.howest.be/en)")]
 [assembly: AssemblyProduct("vApus.Monitor.Sources.Base")]
-[assembly: AssemblyCopyright("Copyright 2014 (c) Sizing Servers Lab\nUniversity College of West-Flanders, Department GKG")]
+[assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

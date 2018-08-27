@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Dstat Agent Client")]
 [assembly: AssemblyDescription("A generic agent implementation having 5556 for a default port to connect to.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Howest Sizing Servers Lab")]
+[assembly: AssemblyCompany("Sizing Servers Lab, affiliated with IT bachelor degree NMCT at University College of West-Flanders, Department GKG (www.sizingservers.be, www.nmct.be, www.howest.be/en)")]
 [assembly: AssemblyProduct("vApus.Monitor.Sources.Dstat.Agent")]
-[assembly: AssemblyCopyright("Copyright 2014 (c) Sizing Servers Lab\nUniversity College of West-Flanders, Department GKG")]
+[assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
