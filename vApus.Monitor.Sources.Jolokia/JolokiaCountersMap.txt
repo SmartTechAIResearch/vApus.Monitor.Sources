@@ -2,13 +2,22 @@
 
 One counter per line, json formatted. Lines of text in this file that is not json or starts with // is ommitted when the counters mapping happens internally.
 Like so:
+// Check heap usage
 { "mbean" : "java.lang:type=Memory", "attribute" : "HeapMemoryUsage", "path" : "used" }
+// Check amount of heap configured
 { "mbean" : "java.lang:type=Memory", "attribute" : "HeapMemoryUsage", "path" : "committed" }
+
+// Check messages in per time unit => how many messages are getting produced
 { "mbean" : "kafka.server:name=MessagesInPerSec,type=BrokerTopicMetrics", "attribute" : "MeanRate" }
 { "mbean" : "kafka.server:name=MessagesInPerSec,type=BrokerTopicMetrics", "attribute" : "OneMinuteRate" }
 { "mbean" : "kafka.server:name=MessagesInPerSec,type=BrokerTopicMetrics", "attribute" : "FiveMinuteRate" }
 { "mbean" : "kafka.server:name=MessagesInPerSec,type=BrokerTopicMetrics", "attribute" : "FifteenMinuteRate" }
 
+// Check bytes out per time unit => can be translated (more or less) to messages consumed
+{ "mbean" : "kafka.server:name=BytesOutPerSec,type=BrokerTopicMetrics", "attribute" : "MeanRate" }
+{ "mbean" : "kafka.server:name=BytesOutPerSec,type=BrokerTopicMetrics", "attribute" : "OneMinuteRate" }
+{ "mbean" : "kafka.server:name=BytesOutPerSec,type=BrokerTopicMetrics", "attribute" : "FiveMinuteRate" }
+{ "mbean" : "kafka.server:name=BytesOutPerSec,type=BrokerTopicMetrics", "attribute" : "FifteenMinuteRate" }
 
 One such counter line MUST lead to EXACTLY ONE value. e.g.
 
