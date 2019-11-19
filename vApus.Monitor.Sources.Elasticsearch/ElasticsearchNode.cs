@@ -61,8 +61,8 @@ namespace vApus.Monitor.Sources.Elasticsearch {
 
         public override string Config {
             get {
-                _jvMaster = GetBody("_cat/master?v=pretty");
-                _jvShards = GetBody("_cat/shards?v=pretty");
+                _jvMaster = GetBody("_cat/master?v");
+                _jvShards = GetBody("_cat/shards?v");
 
                 return "Master\n" + _jvMaster + "\n\nShards\n" + _jvShards;
             }
@@ -92,8 +92,8 @@ namespace vApus.Monitor.Sources.Elasticsearch {
             try {
                 var entities = Entities;
 
-                _jvMaster = GetBody("_cat/master?v=pretty");
-                _jvShards = GetBody("_cat/shards?v=pretty");
+                _jvMaster = GetBody("_cat/master?v");
+                _jvShards = GetBody("_cat/shards?v");
 
                 _connected = true;
             }
@@ -277,7 +277,7 @@ namespace vApus.Monitor.Sources.Elasticsearch {
 
             JsonValue jvStats = GetJSONObject("_nodes/stats")["nodes"];
             string[] jvMaster = GetBody("_cat/master").Split(' ');
-            _jvShards = GetBody("_cat/shards?v=pretty");
+            _jvShards = GetBody("_cat/shards?v");
 
             List<CounterInfo> shardscis = null;
             ConcurrentBag<CounterInfo> statscis = null;
